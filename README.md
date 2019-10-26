@@ -1,2 +1,0 @@
-# oxo
-Tres en raya
