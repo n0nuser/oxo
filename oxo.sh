@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#QUEDA CAMBIAR FUNCIONES: turnoPC, turnoHumano, Jugar
+#QUEDA POR HACER f(Estadisticas) Y f(Configuracion)
+
 function Comprobar-g(){
   if [ "$2" = "-g" ];then
     echo -e "\e[35mPablo\e[0m Jesus Gonzalez Rubio"
@@ -18,31 +21,20 @@ function ComprobarConf() {
       exit;
   fi
 
-  # Verifica que no hay saltos de línea en el archivo
-  #if [ $(find -name "oxo.cfg" -printf '\n' | wc -l) -ge 1 ];then
-    #echo -e "\e[1;31mERROR\e[0m. El fichero $FILE contiene una o más líneas en blanco."
-    #exit
-  #fi
-
   if [ $(wc -l "$FILE" | cut -b 1) != "3" ];then
     echo -e "\e[1;31mERROR\e[0m. El fichero $FILE no tiene los 3 campos necesarios (COMIENZO, FICHACENTRAL, ESTADISTICAS)."
     exit;
   fi
 
   # Recoger los datos del fichero
-  i=0
   while IFS='=' read DATO VALOR
   do
-    i=$(($i+1))
-    # Se recoge unicamente el valor, el nombre se descarta
-    # Aun asi, el nombre hay que guardarlo en dato, para que se separe bien
-    if [ $i == 1 ];then
+    # Nos garantizamos que aun cambiando la linea de orden, sigue funcionando
+    if [ $DATO = "COMIENZO" ]; then
       COMIENZO=$VALOR
-    fi
-    if [ $i == 2 ];then
+    elif [ $DATO == "FICHACENTRAL" ]; then
       FICHACENTRAL=$VALOR
-    fi
-    if [ $i == 3 ];then
+    elif [ $DATO == "ESTADISTICAS" ]; then
       ESTADISTICAS=$VALOR
     fi
   done < $FILE
@@ -59,15 +51,104 @@ function ComprobarConf() {
     exit;
   fi
 }
-Configuracion(){
+
+function comprobarTablero() {
+  # Comprueba si el tablero está lleno
+  # Comprueba el primero con el segundo y el segundo con el tercero
+  if [ "POSICION[0]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[8]" ]; then
+    return 1
+  elif [ "POSICION[2]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[6]" ]; then
+    return 1
+  fi
+  for (( i = 0; i < 2; i+3 )); do
+    if [ "POSICION[$i]" = "POSICION[$i+1]" ] && [ "POSICION[$i+1]" = "POSICION[$i+2]" ]; then
+      return 1
+    fi
+  done
+  for (( i = 0; i < 2; i++ )); do
+    if [ "POSICION[$i]" = "POSICION[$i+3]" ] && [ "POSICION[$i+3]" = "POSICION[$i+6]" ]; then
+    return 1
+    fi
+  done
+  return 0
+}
+
+function turnoHumano(){
+  #CAMBIARLO PARA OTRO DIA
+  read -p "Inserta posición de $FICHAHUMANO: " AUX
+  if [ $AUX > 0 ] && [ $AUX < 9 ]; then
+    while [ '$POSICION[$((AUX-1))]' != ' ' ]
+    do
+      echo "Posición Ya Ocupada."
+    done
+    POSICION[$((AUX-1))]="$FICHAHUMANO"
+  else
+    echo "Posición NO Válida."
+  fi
+  COMIENZO=2
+}
+
+function turnoPC(){
+  #CAMBIARLO PARA OTRO DIA
+  sleep 3
+  POSICION_PC=$(( $RANDOM % 9 + 1  ))
+  while [ '$POSICION[$POSICION_PC]' != ' ' ]
+  do
+    POSICION_PC=$(( $RANDOM % 9 + 1  ))
+  done
+  POSICION[$POSICION_PC]="$FICHAPC"
+  COMIENZO=1
+}
+
+function Configuracion(){
   echo
 }
 
-Jugar(){
-  echo
+function Jugar(){
+  clear
+  echo -e "\nEl tablero es de la siguiente forma:"
+  echo -e "\n\n\t 1 | 2 | 3 "
+  echo -e "\t===·===·==="
+  echo -e "\t 4 | 5 | 6 "
+  echo -e "\t===·===·==="
+  echo -e "\t 7 | 8 | 9 "
+
+  sleep 3
+  clear
+
+  declare -a POSICION=(' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ');
+  declare -a TABLERO=('\n\n\t|' ' $POSICION[0] |' ' $POSICION[1] |' ' $POSICION[2] |\n\t===·===·===\n\t|' ' $POSICION[3] |' ' $POSICION[4] |' ' $POSICION[5] |\n\t===·===·===\n\t|' ' $POSICION[6] |' ' $POSICION[7] |' ' $POSICION[8] |\n\n');
+  declare -a FICHA=('O' 'X')
+  #ASIGNA A COMIENZO UN VALOR ALEATORIO ENTRE 1 Y 2
+  if [ $COMIENZO -eq 3 ]; then
+    COMIENZO=$(( $RANDOM % 2 + 1  ))
+  fi
+  #ASIGNA LAS FICHAS A ORDENADOR Y HUMANO
+  if [ $COMIENZO -eq 1 ];then
+    FICHAHUMANO=$FICHA[1]
+    FICHAPC=$FICHA[0]
+  elif [ $COMIENZO -eq 2 ];then
+    FICHAHUMANO=$FICHA[0]
+    FICHAPC=$FICHA[1]
+  fi
+
+  while [ comprobarTablero != 1 ]
+  do
+    #declare -a TABLERO=('\n\n\t|' ' $POSICION[0] |' ' $POSICION[1] |' ' $POSICION[2] |\n\t===·===·===\n\t|' ' $POSICION[3] |' ' $POSICION[4] |' ' $POSICION[5] |\n\t===·===·===\n\t|' ' $POSICION[6] |' ' $POSICION[7] |' ' $POSICION[8] |\n\n');
+    echo ${TABLERO[@]}
+    #ESTO CAMBIARLO PARA OTRO DIA
+    if [ $COMIENZO -eq 3 ]; then
+      COMIENZO=$(( $RANDOM % 2 + 1  ))
+      if [ $COMIENZO -eq 1 ]; then
+        turnoHumano
+      elif [ $COMIENZO -eq 2 ]; then
+        turnoPC
+      fi
+    fi
+  done
 }
 
-Estadisticas(){
+function Estadisticas(){
   echo
 }
 
@@ -100,6 +181,8 @@ function Menu(){
     ;;
     *)
       echo -e "\n\nNo se ha introducido una opción válida.\n"
+      sleep 5
+      clear
       Menu
     ;;
   esac
