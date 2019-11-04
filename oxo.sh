@@ -55,28 +55,30 @@ function ComprobarConf() {
 function comprobarTablero() {
   # Comprueba si el tablero está lleno
   # Comprueba el primero con el segundo y el segundo con el tercero
-  if [ "POSICION[0]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[8]" ]; then
-    return 1
-  elif [ "POSICION[2]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[6]" ]; then
-    return 1
-  fi
-  for (( i = 0; i < 2; i+3 )); do
-    if [ "POSICION[$i]" = "POSICION[$i+1]" ] && [ "POSICION[$i+1]" = "POSICION[$i+2]" ]; then
+  if [ "POSICION[0]" != " " ] && [ "POSICION[1]" != " " ] && [ "POSICION[2]" != " " ] && [ "POSICION[3]" != " " ] && [ "POSICION[4]" != " " ] && [ "POSICION[5]" != " " ] && [ "POSICION[6]" != " " ] && [ "POSICION[7]" != " " ] && [ "POSICION[8]" != " " ]; then
+    if [ "POSICION[0]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[8]" ]; then
+      return 1
+    elif [ "POSICION[2]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[6]" ]; then
       return 1
     fi
-  done
-  for (( i = 0; i < 2; i++ )); do
-    if [ "POSICION[$i]" = "POSICION[$i+3]" ] && [ "POSICION[$i+3]" = "POSICION[$i+6]" ]; then
-    return 1
-    fi
-  done
+    for (( i = 0; i < 2; i+3 )); do
+      if [ "POSICION[$i]" = "POSICION[$i+1]" ] && [ "POSICION[$i+1]" = "POSICION[$i+2]" ]; then
+        return 1
+      fi
+    done
+    for (( i = 0; i < 2; i++ )); do
+      if [ "POSICION[$i]" = "POSICION[$i+3]" ] && [ "POSICION[$i+3]" = "POSICION[$i+6]" ]; then
+      return 1
+      fi
+    done
+  fi
   return 0
 }
 
-function turnoHumano(){
-  #CAMBIARLO PARA OTRO DIA
-  read -p "Inserta posición de $FICHAHUMANO: " AUX
-  if [ $AUX > 0 ] && [ $AUX < 9 ]; then
+# HUMANO
+function comprobarFichaHumano(){
+  AUX=$1
+  if [ $AUX >= 0 ] && [ $AUX < 9 ]; then
     while [ '$POSICION[$((AUX-1))]' != ' ' ]
     do
       echo "Posición Ya Ocupada."
@@ -84,19 +86,91 @@ function turnoHumano(){
     POSICION[$((AUX-1))]="$FICHAHUMANO"
   else
     echo "Posición NO Válida."
+    return 1
+  fi
+}
+
+function comprobarFichaHumanoNew(){
+  OLD=$1
+  NEW=$2
+  # Posición antigua
+  if [ $OLD >= 0 ] && [ $OLD < 9 ]; then
+    if [ '$POSICION[$((OLD-1))]' != '$FICHAHUMANO' ]; then
+      echo "No has elegido una de tus fichas."
+      return 1
+    fi
+  # Posición nueva
+  elif [ $NEW >= 0 ] && [ $NEW < 9 ]; then
+    if [ '$POSICION[$((NEW-1))]' != ' ' ]; then
+      echo "Posición Ya Ocupada."
+      return 1
+    fi
+    POSICION[$((OLD-1))]=" "
+    POSICION[$((NEW-1))]="$FICHAHUMANO"
+  else
+    echo "Posición NO Válida."
+    return 1
+  fi
+}
+
+function turnoHumano(){
+  #CAMBIARLO PARA OTRO DIA
+  if [ CONTADORHUMANO -le 3]; then
+    read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
+    while [ $(comprobarFichaHumano $POS_HUM_NEW) -eq 1 ]
+    do
+      read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
+    done
+  else
+    # Intercambiar posiciones de ficha humano
+    read -p "Inserta posición ficha a mover: " POS_HUM_OLD
+    read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
+    while [ $(comprobarFichaHumanoNew $POS_HUM_OLD $POS_HUM_NEW) -eq 1 ]
+    do
+      read -p "Inserta posición ficha a mover: " POS_HUM_OLD
+      read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
+    done
   fi
   COMIENZO=2
 }
 
-function turnoPC(){
-  #CAMBIARLO PARA OTRO DIA
-  sleep 3
-  POSICION_PC=$(( $RANDOM % 9 + 1  ))
-  while [ '$POSICION[$POSICION_PC]' != ' ' ]
+# ORDENADOR
+function comprobarFichaPC(){
+  # Aleatorio entre 0 - ... - 8
+  POS_PC_NEW=$(( $RANDOM % 9 ))
+  while [ '$POSICION[$POS_PC_NEW]' != ' ' ]
   do
-    POSICION_PC=$(( $RANDOM % 9 + 1  ))
+    POS_PC_NEW=$(( $RANDOM % 9))
+    # Va guardando las posiciones de la ficha del pc en un array
+    # Así nos ahorramos coste computacional después
   done
+  VALORES_FICHAS_PC[$((CONTADORPC-1))]=$POS_PC_NEW
+  POSICION_PC=$VALORES_FICHAS_PC[$POS_RAND]
+}
+
+function comprobarFichaPCNew(){
+  # Aleatorio entre 0 - 1 - 2
+  POS_RAND=$(( $RANDOM % 3 ))
+  POS_PC_OLD=$VALORES_FICHAS_PC[$POS_RAND]
+  POS_PC_NEW=$(( $RANDOM % 9 ))
+  while [ '$POSICION[$POS_PC_NEW]' != ' ' ]
+  do
+    POS_PC_NEW=$(( $RANDOM % 9 ))
+  done
+  VALORES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
+  POSICION_PC=$VALORES_FICHAS_PC[$POS_RAND]
+}
+
+function turnoPC(){
+  #ANTES DE CUMPLIR 3 MOVS.
+  sleep 3
+  if [ CONTADORPC -le 3]; then
+    comprobarFichaPC
+  else
+    comprobarFichaPCNew
+  fi
   POSICION[$POSICION_PC]="$FICHAPC"
+
   COMIENZO=1
 }
 
@@ -116,9 +190,12 @@ function Jugar(){
   sleep 3
   clear
 
-  declare -a POSICION=(' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ' ');
-  declare -a TABLERO=('\n\n\t|' ' $POSICION[0] |' ' $POSICION[1] |' ' $POSICION[2] |\n\t===·===·===\n\t|' ' $POSICION[3] |' ' $POSICION[4] |' ' $POSICION[5] |\n\t===·===·===\n\t|' ' $POSICION[6] |' ' $POSICION[7] |' ' $POSICION[8] |\n\n');
+  for (( i = 0; i < 9; i++ )); do
+    POSICION[$i]=" "
+  done
+  #TABLERO=('\n\n\t| $POSICION[0] | $POSICION[1] | $POSICION[2] |\n\t===·===·===\n\t| $POSICION[3] | $POSICION[4] | $POSICION[5] |\n\t===·===·===\n\t| $POSICION[6] | $POSICION[7] | $POSICION[8] |\n\n');
   declare -a FICHA=('O' 'X')
+  declare -a VALORES_FICHAS_PC
   #ASIGNA A COMIENZO UN VALOR ALEATORIO ENTRE 1 Y 2
   if [ $COMIENZO -eq 3 ]; then
     COMIENZO=$(( $RANDOM % 2 + 1  ))
@@ -132,20 +209,23 @@ function Jugar(){
     FICHAPC=$FICHA[1]
   fi
 
-  while [ comprobarTablero != 1 ]
-  do
-    #declare -a TABLERO=('\n\n\t|' ' $POSICION[0] |' ' $POSICION[1] |' ' $POSICION[2] |\n\t===·===·===\n\t|' ' $POSICION[3] |' ' $POSICION[4] |' ' $POSICION[5] |\n\t===·===·===\n\t|' ' $POSICION[6] |' ' $POSICION[7] |' ' $POSICION[8] |\n\n');
-    echo ${TABLERO[@]}
-    #ESTO CAMBIARLO PARA OTRO DIA
+  #while [ comprobarTablero != 1 ]
+  #do
+    #echo ${TABLERO[@]}
+    printf "\n\n\t| %c | %c | %c |\n\t === === ===\n\t| %c | %c | %c |\n\t === === ===\n\t| %c | %c | %c |\n\n" "$((POSICION[0]))" "$((POSICION[1]))" "$((POSICION[2]))" "$((POSICION[3]))" "$((POSICION[4]))" "$((POSICION[5]))" "$((POSICION[6]))" "$((POSICION[7]))" "$((POSICION[8]))";
+    CONTADORHUMANO=1
+    CONTADORPC=1
     if [ $COMIENZO -eq 3 ]; then
       COMIENZO=$(( $RANDOM % 2 + 1  ))
       if [ $COMIENZO -eq 1 ]; then
         turnoHumano
+        CONTADORHUMANO++
       elif [ $COMIENZO -eq 2 ]; then
         turnoPC
+        CONTADORPC++
       fi
     fi
-  done
+  #done
 }
 
 function Estadisticas(){
