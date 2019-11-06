@@ -1,6 +1,4 @@
 #!/bin/bash
-
-#QUEDA CAMBIAR FUNCIONES: turnoPC, turnoHumano, Jugar
 #QUEDA POR HACER f(Estadisticas) Y f(Configuracion)
 
 function Comprobar-g(){
@@ -32,20 +30,18 @@ function ComprobarConf() {
     # Nos garantizamos que aun cambiando la linea de orden, sigue funcionando
     if [ $DATO = "COMIENZO" ]; then
       COMIENZO=$VALOR
-    elif [ $DATO == "FICHACENTRAL" ]; then
+    elif [ $DATO = "FICHACENTRAL" ]; then
       FICHACENTRAL=$VALOR
-    elif [ $DATO == "ESTADISTICAS" ]; then
+    elif [ $DATO = "ESTADISTICAS" ]; then
       ESTADISTICAS=$VALOR
     fi
   done < $FILE
 
-  #AQUÍ DA ERROR
   if [ $COMIENZO != 1 ] && [ $COMIENZO != 2 ] && [ $COMIENZO != 3 ];then
     echo -e "\e[1;31mERROR\e[0m. No se ha introducido un valor correcto del COMIENZO (1,2 o 3)."
     exit;
   fi
 
-# AQUÍ DA ERROR
   if [ $FICHACENTRAL != 1 ] && [ $FICHACENTRAL != 2 ];then
     echo -e "\e[1;31mERROR\e[0m. No se ha introducido un valor correcto de la FICHACENTRAL (1 o 2)."
     exit;
@@ -55,7 +51,7 @@ function ComprobarConf() {
 function comprobarTablero() {
   # Comprueba si el tablero está lleno
   # Comprueba el primero con el segundo y el segundo con el tercero
-  if [ "POSICION[0]" != " " ] && [ "POSICION[1]" != " " ] && [ "POSICION[2]" != " " ] && [ "POSICION[3]" != " " ] && [ "POSICION[4]" != " " ] && [ "POSICION[5]" != " " ] && [ "POSICION[6]" != " " ] && [ "POSICION[7]" != " " ] && [ "POSICION[8]" != " " ]; then
+  if [ "POSICION[0]" != "*" ] && [ "POSICION[1]" != "*" ] && [ "POSICION[2]" != "*" ] && [ "POSICION[3]" != "*" ] && [ "POSICION[4]" != "*" ] && [ "POSICION[5]" != "*" ] && [ "POSICION[6]" != "*" ] && [ "POSICION[7]" != "*" ] && [ "POSICION[8]" != "*" ]; then
     if [ "POSICION[0]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[8]" ]; then
       return 1
     elif [ "POSICION[2]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[6]" ]; then
@@ -78,8 +74,8 @@ function comprobarTablero() {
 # HUMANO
 function comprobarFichaHumano(){
   AUX=$1
-  if [ $AUX >= 0 ] && [ $AUX < 9 ]; then
-    while [ '$POSICION[$((AUX-1))]' != ' ' ]
+  if [ $AUX -ge 0 ] && [ $AUX -lt 9 ]; then
+    while [ ${POSICION[$((AUX-1))]} != '*' ]
     do
       echo "Posición Ya Ocupada."
     done
@@ -101,11 +97,11 @@ function comprobarFichaHumanoNew(){
     fi
   # Posición nueva
   elif [ $NEW >= 0 ] && [ $NEW < 9 ]; then
-    if [ '$POSICION[$((NEW-1))]' != ' ' ]; then
+    if [ '$POSICION[$((NEW-1))]' != '*' ]; then
       echo "Posición Ya Ocupada."
       return 1
     fi
-    POSICION[$((OLD-1))]=" "
+    POSICION[$((OLD-1))]="*"
     POSICION[$((NEW-1))]="$FICHAHUMANO"
   else
     echo "Posición NO Válida."
@@ -115,9 +111,9 @@ function comprobarFichaHumanoNew(){
 
 function turnoHumano(){
   #CAMBIARLO PARA OTRO DIA
-  if [ CONTADORHUMANO -le 3]; then
+  if [ $CONTADORHUMANO -le 3 ]; then
     read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
-    while [ $(comprobarFichaHumano $POS_HUM_NEW) -eq 1 ]
+    while [ $((comprobarFichaHumano $POS_HUM_NEW)) = "1" ]
     do
       read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
     done
@@ -138,7 +134,7 @@ function turnoHumano(){
 function comprobarFichaPC(){
   # Aleatorio entre 0 - ... - 8
   POS_PC_NEW=$(( $RANDOM % 9 ))
-  while [ '$POSICION[$POS_PC_NEW]' != ' ' ]
+  while [ '$POSICION[$POS_PC_NEW]' != '*' ]
   do
     POS_PC_NEW=$(( $RANDOM % 9))
     # Va guardando las posiciones de la ficha del pc en un array
@@ -153,7 +149,7 @@ function comprobarFichaPCNew(){
   POS_RAND=$(( $RANDOM % 3 ))
   POS_PC_OLD=$VALORES_FICHAS_PC[$POS_RAND]
   POS_PC_NEW=$(( $RANDOM % 9 ))
-  while [ '$POSICION[$POS_PC_NEW]' != ' ' ]
+  while [ '$POSICION[$POS_PC_NEW]' != '*' ]
   do
     POS_PC_NEW=$(( $RANDOM % 9 ))
   done
@@ -191,9 +187,8 @@ function Jugar(){
   clear
 
   for (( i = 0; i < 9; i++ )); do
-    POSICION[$i]=" "
+    POSICION[$i]="*"
   done
-  #TABLERO=('\n\n\t| $POSICION[0] | $POSICION[1] | $POSICION[2] |\n\t===·===·===\n\t| $POSICION[3] | $POSICION[4] | $POSICION[5] |\n\t===·===·===\n\t| $POSICION[6] | $POSICION[7] | $POSICION[8] |\n\n');
   declare -a FICHA=('O' 'X')
   declare -a VALORES_FICHAS_PC
   #ASIGNA A COMIENZO UN VALOR ALEATORIO ENTRE 1 Y 2
@@ -202,29 +197,28 @@ function Jugar(){
   fi
   #ASIGNA LAS FICHAS A ORDENADOR Y HUMANO
   if [ $COMIENZO -eq 1 ];then
-    FICHAHUMANO=$FICHA[1]
-    FICHAPC=$FICHA[0]
+    FICHAHUMANO=${FICHA[1]}
+    FICHAPC=${FICHA[0]}
   elif [ $COMIENZO -eq 2 ];then
-    FICHAHUMANO=$FICHA[0]
-    FICHAPC=$FICHA[1]
+    FICHAHUMANO=${FICHA[0]}
+    FICHAPC=${FICHA[1]}
   fi
 
   #while [ comprobarTablero != 1 ]
   #do
-    #echo ${TABLERO[@]}
-    printf "\n\n\t| %c | %c | %c |\n\t === === ===\n\t| %c | %c | %c |\n\t === === ===\n\t| %c | %c | %c |\n\n" "$((POSICION[0]))" "$((POSICION[1]))" "$((POSICION[2]))" "$((POSICION[3]))" "$((POSICION[4]))" "$((POSICION[5]))" "$((POSICION[6]))" "$((POSICION[7]))" "$((POSICION[8]))";
+    echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n"
     CONTADORHUMANO=1
     CONTADORPC=1
     if [ $COMIENZO -eq 3 ]; then
       COMIENZO=$(( $RANDOM % 2 + 1  ))
-      if [ $COMIENZO -eq 1 ]; then
-        turnoHumano
-        CONTADORHUMANO++
-      elif [ $COMIENZO -eq 2 ]; then
-        turnoPC
-        CONTADORPC++
-      fi
+    elif [ $COMIENZO -eq 1 ]; then
+      turnoHumano
+      $((CONTADORHUMANO++))
+    elif [ $COMIENZO -eq 2 ]; then
+      turnoPC
+      $((CONTADORPC++))
     fi
+
   #done
 }
 
