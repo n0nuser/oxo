@@ -1,15 +1,8 @@
 #!/bin/bash
 #QUEDA POR HACER f(Estadisticas) Y f(Configuracion)
 
-function Comprobar-g(){
-  if [ "$2" = "-g" ];then
-    echo -e "\e[35mPablo\e[0m Jesus Gonzalez Rubio"
-    echo -e "Francisco Javier Gallego Lahera"
-    return 1
-  fi
-}
 
-function ComprobarConf() {
+ComprobarConf() {
   FILE='oxo.cfg'
   # Verificar si el fichero existe
   # No haría falta si no existiera la opcion de eliminar el archivo mientras se juega
@@ -48,75 +41,77 @@ function ComprobarConf() {
   fi
 }
 
-function comprobarTablero() {
+comprobarTablero() {
   # Comprueba si el tablero está lleno
   # Comprueba el primero con el segundo y el segundo con el tercero
-  if [ "POSICION[0]" != "*" ] && [ "POSICION[1]" != "*" ] && [ "POSICION[2]" != "*" ] && [ "POSICION[3]" != "*" ] && [ "POSICION[4]" != "*" ] && [ "POSICION[5]" != "*" ] && [ "POSICION[6]" != "*" ] && [ "POSICION[7]" != "*" ] && [ "POSICION[8]" != "*" ]; then
-    if [ "POSICION[0]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[8]" ]; then
-      return 1
-    elif [ "POSICION[2]" = "POSICION[4]" ] && [ "POSICION[4]" = "POSICION[6]" ]; then
+  if [ "${POSICION[0]}" = "${POSICION[4]}" ] && [ "${POSICION[4]}" = "${POSICION[8]}" ]; then
+    return 1
+  elif [ "${POSICION[2]}" = "${POSICION[4]}" ] && [ "${POSICION[4]}" = "${POSICION[6]}" ]; then
+    return 1
+  fi
+  for (($ i = 0; i < 3; i+3 )); do
+    if [ "${POSICION[$i]}" = "${POSICION[$(($i + 1))]}" ] && [ "${POSICION[$(($i + 1))]}" = "${POSICION[$(($i + 2))]}" ]; then
       return 1
     fi
-    for (( i = 0; i < 2; i+3 )); do
-      if [ "POSICION[$i]" = "POSICION[$i+1]" ] && [ "POSICION[$i+1]" = "POSICION[$i+2]" ]; then
-        return 1
-      fi
-    done
-    for (( i = 0; i < 2; i++ )); do
-      if [ "POSICION[$i]" = "POSICION[$i+3]" ] && [ "POSICION[$i+3]" = "POSICION[$i+6]" ]; then
-      return 1
-      fi
-    done
-  fi
+  done
+  for (($ i = 0; i < 3; i++ )); do
+    if [ "${POSICION[$i]}" = "${POSICION[$(($i + 3))]}" ] && [ "${POSICION[$(($i + 3))]}" = "${POSICION[$(($i + 6))]}" ]; then
+    return 1
+    fi
+  done
   return 0
 }
 
 # HUMANO
-function comprobarFichaHumano(){
+comprobarFichaHumano(){
   AUX=$1
+  AUX=$(($AUX - 1))
   if [ $AUX -ge 0 ] && [ $AUX -lt 9 ]; then
-    while [ ${POSICION[$((AUX-1))]} != '*' ]
-    do
-      echo "Posición Ya Ocupada."
-    done
-    POSICION[$((AUX-1))]="$FICHAHUMANO"
+    if [ "${POSICION[$AUX]}" != "*" ]; then
+      return 1
+    fi
   else
-    echo "Posición NO Válida."
     return 1
   fi
+  echo "$FICHAHUMANO"
+  return 0
 }
 
-function comprobarFichaHumanoNew(){
+comprobarFichaHumanoNew(){
   OLD=$1
   NEW=$2
   # Posición antigua
   if [ $OLD >= 0 ] && [ $OLD < 9 ]; then
-    if [ '$POSICION[$((OLD-1))]' != '$FICHAHUMANO' ]; then
-      echo "No has elegido una de tus fichas."
+    if [ '$POSICION[$(($OLD - 1))]' != '$FICHAHUMANO' ]; then
       return 1
     fi
   # Posición nueva
   elif [ $NEW >= 0 ] && [ $NEW < 9 ]; then
-    if [ '$POSICION[$((NEW-1))]' != '*' ]; then
-      echo "Posición Ya Ocupada."
+    if [ '$POSICION[$(($NEW - 1))]' != '*' ]; then
       return 1
     fi
-    POSICION[$((OLD-1))]="*"
-    POSICION[$((NEW-1))]="$FICHAHUMANO"
   else
-    echo "Posición NO Válida."
     return 1
   fi
+  POSICION[$(($OLD - 1))]="*"
+  POSICION[$(($NEW - 1))]="$FICHAHUMANO"
+  return 0
 }
 
-function turnoHumano(){
+turnoHumano(){
   #CAMBIARLO PARA OTRO DIA
+  echo -e "\e[1;4mTURNO HUMANO\e[0m\n\n"
   if [ $CONTADORHUMANO -le 3 ]; then
     read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
-    while [ $((comprobarFichaHumano $POS_HUM_NEW)) = "1" ]
+    CPB_FCH_HUM=$(comprobarFichaHumano "$POS_HUM_NEW")
+    while [ $? -eq 1 ]
     do
       read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
+      CPB_FCH_HUM=$(comprobarFichaHumano "$POS_HUM_NEW")
     done
+    POSICION[$(($POS_HUM_NEW - 1))]="$CPB_FCH_HUM"
+  #TODO ESTO DE ARRIBA ESTÁ PERFECTO
+  #AQUÍ YA SE HAN PUESTO LAS 3 FICHAS
   else
     # Intercambiar posiciones de ficha humano
     read -p "Inserta posición ficha a mover: " POS_HUM_OLD
@@ -127,54 +122,53 @@ function turnoHumano(){
       read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
     done
   fi
-  COMIENZO=2
 }
 
 # ORDENADOR
-function comprobarFichaPC(){
+comprobarFichaPC(){
   # Aleatorio entre 0 - ... - 8
   POS_PC_NEW=$(( $RANDOM % 9 ))
-  while [ '$POSICION[$POS_PC_NEW]' != '*' ]
+  while [ ${POSICION[$POS_PC_NEW]} != '*' ]
   do
     POS_PC_NEW=$(( $RANDOM % 9))
-    # Va guardando las posiciones de la ficha del pc en un array
-    # Así nos ahorramos coste computacional después
   done
-  VALORES_FICHAS_PC[$((CONTADORPC-1))]=$POS_PC_NEW
-  POSICION_PC=$VALORES_FICHAS_PC[$POS_RAND]
+  # Va guardando las posiciones de las fichas en un array
+  # Así nos ahorramos coste computacional después
+  POSICIONES_FICHAS_PC[$(($CONTADORPC - 1))]=$POS_PC_NEW
+  return $POS_PC_NEW
 }
 
-function comprobarFichaPCNew(){
+comprobarFichaPCNew(){
   # Aleatorio entre 0 - 1 - 2
   POS_RAND=$(( $RANDOM % 3 ))
-  POS_PC_OLD=$VALORES_FICHAS_PC[$POS_RAND]
+  POS_PC_OLD=$POSICIONES_FICHAS_PC[$POS_RAND]
   POS_PC_NEW=$(( $RANDOM % 9 ))
   while [ '$POSICION[$POS_PC_NEW]' != '*' ]
   do
     POS_PC_NEW=$(( $RANDOM % 9 ))
   done
-  VALORES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
-  POSICION_PC=$VALORES_FICHAS_PC[$POS_RAND]
+  POSICIONES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
+  POSICION_PC=$POSICIONES_FICHAS_PC[$POS_RAND]
 }
 
-function turnoPC(){
+turnoPC(){
+  echo -e "\e[1;4mTURNO PC\e[0m\n\n"
   #ANTES DE CUMPLIR 3 MOVS.
-  sleep 3
-  if [ CONTADORPC -le 3]; then
+  sleep 4
+  if [ $CONTADORPC -le 3 ]; then
     comprobarFichaPC
+    POSICION[$?]="$FICHAPC"
   else
     comprobarFichaPCNew
   fi
-  POSICION[$POSICION_PC]="$FICHAPC"
 
-  COMIENZO=1
 }
 
-function Configuracion(){
+Configuracion(){
   echo
 }
 
-function Jugar(){
+Jugar(){
   clear
   echo -e "\nEl tablero es de la siguiente forma:"
   echo -e "\n\n\t 1 | 2 | 3 "
@@ -183,14 +177,15 @@ function Jugar(){
   echo -e "\t===·===·==="
   echo -e "\t 7 | 8 | 9 "
 
-  sleep 3
+  sleep 5
   clear
 
+  declare -a POSICION
   for (( i = 0; i < 9; i++ )); do
     POSICION[$i]="*"
   done
   declare -a FICHA=('O' 'X')
-  declare -a VALORES_FICHAS_PC
+  declare -a POSICIONES_FICHAS_PC
   #ASIGNA A COMIENZO UN VALOR ALEATORIO ENTRE 1 Y 2
   if [ $COMIENZO -eq 3 ]; then
     COMIENZO=$(( $RANDOM % 2 + 1  ))
@@ -204,29 +199,30 @@ function Jugar(){
     FICHAPC=${FICHA[1]}
   fi
 
-  #while [ comprobarTablero != 1 ]
-  #do
+  while [ comprobarTablero != 1 ]
+  do
+    clear
     echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n"
     CONTADORHUMANO=1
     CONTADORPC=1
-    if [ $COMIENZO -eq 3 ]; then
-      COMIENZO=$(( $RANDOM % 2 + 1  ))
-    elif [ $COMIENZO -eq 1 ]; then
+    if [ $COMIENZO -eq 1 ]; then
       turnoHumano
-      $((CONTADORHUMANO++))
+      CONTADORHUMANO=$(($CONTADORHUMANO + 1))
+      COMIENZO=2
     elif [ $COMIENZO -eq 2 ]; then
       turnoPC
-      $((CONTADORPC++))
+      CONTADORPC=$(($CONTADORPC + 1))
+      COMIENZO=1
     fi
-
-  #done
+    echo -e "COMIENZO VALE $COMIENZO\nSi vale 1 significa que acaba de salir del turno pc, al revés y sale del turno humano."
+  done
 }
 
-function Estadisticas(){
+Estadisticas(){
   echo
 }
 
-function Menu(){
+Menu(){
   echo -e "\e[1;5;33m  __     _  _     __  ";
   echo -e " /  \   ( \/ )   /  \ ";
   echo -e "(  O )   )  (   (  O )";
@@ -240,16 +236,16 @@ function Menu(){
   # -p Muestra el texto y pregunta sin meter salto de línea
   echo -en "\e[1;4mOXO\e[0m. Introduzca una opción >> "; read OPCION
   case $OPCION in
-    C)
+    C | c)
       Configuracion
     ;;
-    J)
+    J | j)
       Jugar
     ;;
-    E)
+    E | e)
       Estadisticas
     ;;
-    S)
+    S | s)
       echo -e "\n\t\e[1;33mSaliendo\e[0m del programa...\n"
       exit;
     ;;
@@ -262,8 +258,12 @@ function Menu(){
   esac
 }
 
-Comprobar-g
+if [ $1 = "-g" ];then
+  echo -e "Pablo Jesus Gonzalez Rubio"
+  echo -e "Francisco Javier Gallego Lahera"
+  exit
+fi
 ComprobarConf
 # DESPUÉS DE JUGAR VUELVE AQUÍ
-#clear
+clear
 Menu
