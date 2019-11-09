@@ -165,7 +165,9 @@ turnoPC(){
 }
 
 Configuracion(){
-  echo
+  echo -e "\n"
+  cat $FILE
+  echo -e "\n"
 }
 
 Jugar(){
