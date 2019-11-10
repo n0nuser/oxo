@@ -42,23 +42,33 @@ ComprobarConf() {
 }
 
 comprobarTablero() {
-  # Comprueba si el tablero está lleno
+  echo "Entra en la función"
   # Comprueba el primero con el segundo y el segundo con el tercero
   if [ "${POSICION[0]}" = "${POSICION[4]}" ] && [ "${POSICION[4]}" = "${POSICION[8]}" ]; then
+    COMPROBAR=1
+    echo "Primera diagonal"
     return 1
   elif [ "${POSICION[2]}" = "${POSICION[4]}" ] && [ "${POSICION[4]}" = "${POSICION[6]}" ]; then
+    COMPROBAR=1
+    echo "Segunda diagonal"
     return 1
   fi
   for (($ i = 0; i < 3; i+3 )); do
     if [ "${POSICION[$i]}" = "${POSICION[$(($i + 1))]}" ] && [ "${POSICION[$(($i + 1))]}" = "${POSICION[$(($i + 2))]}" ]; then
+      COMPROBAR=1
+      echo "Línea"
       return 1
     fi
   done
   for (($ i = 0; i < 3; i++ )); do
     if [ "${POSICION[$i]}" = "${POSICION[$(($i + 3))]}" ] && [ "${POSICION[$(($i + 3))]}" = "${POSICION[$(($i + 6))]}" ]; then
-    return 1
+    COMPROBAR=1
+    echo "Columna"
     fi
   done
+  
+  echo "Nada. Se sigue jugando"
+  COMPROBAR=0
   return 0
 }
 
@@ -201,20 +211,34 @@ Jugar(){
     FICHAPC=${FICHA[1]}
   fi
 
-  while [ comprobarTablero != 1 ]
+  COMPROBAR=0
+  while [ COMPROBAR != 1 ]
   do
+    comprobarTablero
+    echo COMPROBAR
     clear
+
     echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n"
     CONTADORHUMANO=1
     CONTADORPC=1
+
+    echo "Valor de comprobarTablero: $COMPROBAR"
     if [ $COMIENZO -eq 1 ]; then
       turnoHumano
       CONTADORHUMANO=$(($CONTADORHUMANO + 1))
       COMIENZO=2
+
+      comprobarTablero
+      echo "Valor de comprobarTablero: $COMPROBAR"
+
     elif [ $COMIENZO -eq 2 ]; then
       turnoPC
       CONTADORPC=$(($CONTADORPC + 1))
       COMIENZO=1
+
+      comprobarTablero
+      echo "Valor de comprobarTablero: $COMPROBAR"
+
     fi
     echo -e "COMIENZO VALE $COMIENZO\nSi vale 1 significa que acaba de salir del turno pc, al revés y sale del turno humano."
   done
