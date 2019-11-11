@@ -176,18 +176,17 @@ comprobarFichaPCNew(){
   # POSICIÓN NUEVA
   POS_PC_NEW=$(( $RANDOM % 9 ))
   #echo "Nueva posición elegida por el PC: $((POS_PC_NEW+1))"
-  #sleep 3
+  #sleep 5
   while [ "${POSICION[$POS_PC_NEW]}" != "*" ]
   do
-    #echo "Entra en el while del pc"
+    #sleep 5
     POS_PC_NEW=$(( $RANDOM % 9 ))
     #echo "Se acaba de elegir: $((POS_PC_NEW+1))"
+    #echo "El valor de la posición elegida es: "${POSICION[$POS_PC_NEW]}""
     #sleep 5
   done
   # Actualiza los valores de las posiciones entre las que elige el pc (antiguas)
   POSICIONES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
-  #
-  # POSICION_PC=${POSICIONES_FICHAS_PC[$POS_RAND]}
 }
 
 turnoPC(){
@@ -200,7 +199,7 @@ turnoPC(){
   else
     comprobarFichaPCNew
     POSICION[$((POS_PC_OLD))]="*"
-    POSICION[$((POS_HUM_NEW))]="$FICHAPC"
+    POSICION[$((POS_PC_NEW))]="$FICHAPC"
   fi
 
 }
