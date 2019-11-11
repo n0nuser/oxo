@@ -79,26 +79,38 @@ comprobarFichaHumano(){
   return 0
 }
 
-comprobarFichaHumanoNew(){
+comprobarFichaHumanoOld(){
   OLD=$1
-  NEW=$2
-  # Posición antigua
-  #PROBLEMA
-  if [ $OLD -ge 0 ] && [ $OLD -lt 9 ]; then
-    if [ "$POSICION[$((OLD-1))]" != "$FICHAHUMANO" ]; then
-      return 1
-    fi
-  # Posición nueva
-  #PROBLEMA
-  elif [ $NEW -ge 0 ] && [ $NEW -lt 9 ]; then
-    if [ "$POSICION[$((NEW-1))]" != "*" ]; then
+  TEMP=$((OLD-1))
+  if [ $TEMP -ge 0 ] && [ $TEMP -lt 9 ]; then
+    echo "La posición antigua está entre los límites"
+    echo "La ficha elegida es: ${POSICION[TEMP]}"
+    if [ "${POSICION[TEMP]}" != "$FICHAHUMANO" ]; then
+      echo "Pero no es una ficha válida"
       return 1
     fi
   else
+    echo "La posición antigua no está entre los límites"
     return 1
   fi
-  POSICION[$((OLD-1))]="*"
-  POSICION[$((NEW-1))]="$FICHAHUMANO"
+
+  return 0
+}
+
+comprobarFichaHumanoNew(){
+  NEW=$2
+  TEMP2=$((NEW-1))
+  #PROBLEMA
+  if [ $NEW -ge 0 ] && [ $NEW -lt 9 ]; then
+    echo "La nueva posición está entre los límites"
+    if [ "${POSICION[TEMP]}" != "*" ]; then
+      echo "Pero dicha posición está ocupada"
+      return 1
+    fi
+  else
+    echo "Se ha elegido una posición válida"
+    return 0
+  fi
   return 0
 }
 
@@ -118,19 +130,37 @@ turnoHumano(){
 
   #AQUÍ YA SE HAN PUESTO LAS 3 FICHAS
   else
+    echo "El contador del humano es: $CONTADORHUMANO"
     # Intercambiar posiciones de ficha humano
     echo "POSICIONES GUARDADAS DE FICHAS PC: "
     printf '%s ' "${POSICIONES_FICHAS_PC[@]}"
     echo
+
+
     read -p "Inserta posición ficha a mover: " POS_HUM_OLD
-    read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
-    comprobarFichaHumanoNew $POS_HUM_OLD $POS_HUM_NEW
-    while [ $? -eq 1 ]
+    comprobarFichaHumanoOld $POS_HUM_OLD
+    RECIBIDO=$?
+    echo $RECIBIDO
+    while [ $RECIBIDO -eq 1 ]
     do
+      echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
       read -p "Inserta posición ficha a mover: " POS_HUM_OLD
-      read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
-      comprobarFichaHumanoNew $POS_HUM_OLD $POS_HUM_NEW
+      comprobarFichaHumanoOld $POS_HUM_OLD
     done
+
+
+    read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
+    comprobarFichaHumanoNew $POS_HUM_NEW
+    RECIBIDO=$?
+    while [ $RECIBIDO -eq 1 ]
+    do
+      echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
+      read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
+      comprobarFichaHumanoNew $POS_HUM_NEW
+    done
+
+    POSICION[$((POS_HUM_OLD-1))]="*"
+    POSICION[$((POS_HUM_NEW-1))]="$FICHAHUMANO"
   fi
 }
 
@@ -148,14 +178,21 @@ comprobarFichaPC(){
   return $POS_PC_NEW
 }
 
+
 comprobarFichaPCNew(){
   # Aleatorio entre 0 - 1 - 2
   POS_RAND=$(( $RANDOM % 3 ))
   POS_PC_OLD=$POSICIONES_FICHAS_PC[$POS_RAND]
+  echo "Posición antigua elegida por el PC: $POS_PC_OLD"
+  sleep 5
   POS_PC_NEW=$(( $RANDOM % 9 ))
-  while [ "$POSICION[$POS_PC_NEW]" != "*" ]
+  echo "Nueva posición elegida por el PC: $POS_PC_NEW"
+  while [ "${POSICION[$POS_PC_NEW]}" != "*" ]
   do
+    echo "Nueva posición incorrecta"
     POS_PC_NEW=$(( $RANDOM % 9 ))
+    echo "Se acaba de elegir: $POS_PC_NEW"
+    sleep 5
   done
   POSICIONES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
   POSICION_PC=$POSICIONES_FICHAS_PC[$POS_RAND]
