@@ -326,23 +326,21 @@ Estadisticas(){
 
 Menu(){
   clear
-  echo -e "\e[1;5;33m  __     _  _     __  ";
-  echo -e " /  \   ( \/ )   /  \ ";
-  echo -e "(  O )   )  (   (  O )";
-  echo -e " \__/   (_/\_)   \__/ \e[0m\n\n";
-  echo -e " \e[1;33m== MENU ==\e[0m"
-  echo -e "\n\e[1;33m C)\e[0m CONFIGURACIÓN"
-  echo -e "\e[1;33m E)\e[0m ESTADÍSTICAS"
-  echo -e "\e[1;33m J)\e[0m JUGAR"
-  echo -e "\e[1;33m S)\e[0m SALIR\n"
-
   # Leer la opción del menú
   # -p Muestra el texto y pregunta sin meter salto de línea
-  OPCION=A
-  VAR_ESPERA=" "
-  while [ "$OPCION" != "S"]
+  
+  VAR="*"
+  while [ "$OPCION" != "S" ]
   do
-    Menu
+    echo -e "\e[1;5;33m  __     _  _     __  ";
+    echo -e " /  \   ( \/ )   /  \ ";
+    echo -e "(  O )   )  (   (  O )";
+    echo -e " \__/   (_/\_)   \__/ \e[0m\n\n";
+    echo -e " \e[1;33m== MENU ==\e[0m"
+    echo -e "\n\e[1;33m C)\e[0m CONFIGURACIÓN"
+    echo -e "\e[1;33m E)\e[0m ESTADÍSTICAS"
+    echo -e "\e[1;33m J)\e[0m JUGAR"
+    echo -e "\e[1;33m S)\e[0m SALIR\n"
     echo -en " \e[1;4mOXO\e[0m. Introduzca una opción >> "; read OPCION
     case $OPCION in
       C | c)
@@ -365,9 +363,9 @@ Menu(){
         Menu
         ;;
     esac
-    while [ "$VAR" != "\n" ]; 
+    while [ "$VAR" != "" ]; 
     do
-      read -p "\nIntroduzca INTRO para continuar >>" VAR
+      read -p "Introduzca INTRO para continuar >>" VAR
     done
     clear
   done
