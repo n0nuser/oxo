@@ -83,14 +83,12 @@ comprobarFichaHumanoOld(){
   OLD=$1
   TEMP=$((OLD-1))
   if [ $TEMP -ge 0 ] && [ $TEMP -lt 9 ]; then
-    #echo "La posición antigua está entre los límites"
-    #echo "La ficha elegida es: ${POSICION[TEMP]}"
-    if [ "${POSICION[TEMP]}" != "$FICHAHUMANO" ]; then
-      #echo "Pero no es una ficha válida"
+    if [ "${POSICION[$TEMP]}" != "$FICHAHUMANO" ]; then
+      return 1
+    elif [ $TEMP -eq 4 ] && [ $FICHACENTRAL -eq 2 ];then
       return 1
     fi
   else
-    #echo "La posición antigua no está entre los límites"
     return 1
   fi
   return 0
@@ -99,19 +97,15 @@ comprobarFichaHumanoOld(){
 comprobarFichaHumanoNew(){
   NEW=$1
   TEMP2=$((NEW-1))
-  #echo "Posición seleccionada: $TEMP2"
-  #PROBLEMA
   if [ $TEMP2 -ge 0 ] && [ $TEMP2 -lt 9 ]; then
-    #echo "La nueva posición está entre los límites"
-    if [ "${POSICION[TEMP2]}" == "*" ]; then
-      #echo "Y dicha posición está libre"
+    if [ "${POSICION[$TEMP2]}" != "*" ]; then
+      return 1
+    else
       return 0
     fi
   else
-    echo "No se ha elegido una posición válida"
     return 1
   fi
-
 }
 
 turnoHumano(){
@@ -130,7 +124,6 @@ turnoHumano(){
 
   #AQUÍ YA SE HAN PUESTO LAS 3 FICHAS
   else
-    #echo "El contador del humano es: $CONTADORHUMANO"
     # Intercambiar posiciones de ficha humano
     #echo "POSICIONES GUARDADAS DE FICHAS PC: "
     #echo -e "$((${POSICIONES_FICHAS_PC[0]}+1))"
@@ -139,11 +132,8 @@ turnoHumano(){
 
     read -p "Inserta posición ficha a mover: " POS_HUM_OLD
     comprobarFichaHumanoOld $POS_HUM_OLD
-    RECIBIDO=$?
-    #echo $RECIBIDO
-    while [ $RECIBIDO -eq 1 ]
+    while [ $? -eq 1 ]
     do
-      #echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
       read -p "Inserta posición ficha a mover: " POS_HUM_OLD
       comprobarFichaHumanoOld $POS_HUM_OLD
     done
@@ -151,14 +141,11 @@ turnoHumano(){
 
     read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
     comprobarFichaHumanoNew $POS_HUM_NEW
-    RECIBIDO=$?
-    while [ $RECIBIDO -eq 1 ]
+    while [ $? -eq 1 ]
     do
-      #echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
       read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
       comprobarFichaHumanoNew $POS_HUM_NEW
     done
-
     POSICION[$((POS_HUM_OLD-1))]="*"
     POSICION[$((POS_HUM_NEW-1))]="$FICHAHUMANO"
   fi
@@ -200,7 +187,7 @@ comprobarFichaPCNew(){
   # Actualiza los valores de las posiciones entre las que elige el pc (antiguas)
   POSICIONES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
   #
-  # POSICION_PC=$POSICIONES_FICHAS_PC[$POS_RAND]
+  # POSICION_PC=${POSICIONES_FICHAS_PC[$POS_RAND]}
 }
 
 turnoPC(){
@@ -270,7 +257,7 @@ Configuracion(){
 }
 
 Jugar(){
-  #clear
+  clear
   echo -e "\nEl tablero es de la siguiente forma:"
   echo -e "\n\n\t 1 | 2 | 3 "
   echo -e "\t===·===·==="
