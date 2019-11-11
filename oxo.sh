@@ -302,7 +302,7 @@ Jugar(){
         comprobarTablero
         VAR_PRUEBA=$((comprobarTablero))
         comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e "\e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; TERMINAR=1 ; exit ; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e "\e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; TERMINAR=1 ; return 0 ; fi
       fi
     # TURNO PC
     elif [ $COMIENZO -eq 2 ]; then
@@ -313,7 +313,7 @@ Jugar(){
         comprobarTablero
         VAR_PRUEBA=$((comprobarTablero))
         comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e "\e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; TERMINAR=1 ; exit ; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e "\e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; TERMINAR=1 ; return 0 ; fi
       fi
     fi
   done
