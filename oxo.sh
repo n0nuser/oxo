@@ -112,11 +112,11 @@ turnoHumano(){
   #CAMBIARLO PARA OTRO DIA
   echo -e "\e[1;4mTURNO HUMANO\e[0m\n\n"
   if [ $CONTADORHUMANO -le 3 ]; then
-    read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
+    read -p "Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
     CPB_FCH_HUM=$(comprobarFichaHumano "$POS_HUM_NEW")
     while [ $? -eq 1 ]
     do
-      read -p "Inserta posición de $FICHAHUMANO: " POS_HUM_NEW
+      read -p "Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
       CPB_FCH_HUM=$(comprobarFichaHumano "$POS_HUM_NEW")
     done
     POSICION[$((POS_HUM_NEW-1))]="$CPB_FCH_HUM"
@@ -208,13 +208,16 @@ Configuracion(){
   #ASIGNA A LOS VALORES FINALES LOS ANTIGUOS POR SI NO HAY CAMBIOS
   COMIENZONEW=$COMIENZO
   FICHACENTRALNEW=$FICHACENTRAL
-  RUTAESTADISTICASNEW=$ESTADISTICAS
+  ESTADISTICASNEW=$ESTADISTICAS
   clear ; echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
-  echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR"
+  echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR\n"
   read -p " Elija una opción >> " OPT_CONF
+  while [ "$OPT_CONF" = "" ];
+  do
+    read -p " Elija una opción >> " OPT_CONF
+  done
   while [ $OPT_CONF -ne 1 ] && [ $OPT_CONF -ne 2 ] && [ $OPT_CONF -ne 3 ] && [ $OPT_CONF -ne 0 ]
   do
-    echo -e "\n\nNo se ha introducido una opción válida.\n"
     read -p " Elija una opción >> " OPT_CONF
   done
   while [ $OPT_CONF -ne 0 ]
@@ -232,7 +235,7 @@ Configuracion(){
         read -p "Introduce valor nuevo para FICHACENTRAL: " FICHACENTRALNEW
       ;;
       3)
-        read -p "Introduce ruta nueva para ESTADISTICAS: " RUTAESTADISTICASNEW
+        read -p "Introduce ruta nueva para ESTADISTICAS: " ESTADISTICASNEW
       ;;
       0)
         return 0
@@ -240,7 +243,7 @@ Configuracion(){
     esac
     echo "COMIENZO=$COMIENZONEW" > oxo.cfg
     echo "FICHACENTRAL=$FICHACENTRALNEW" >> oxo.cfg
-    echo "ESTADISTICAS=$RUTAESTADISTICASNEW" >> oxo.cfg
+    echo "ESTADISTICAS=$ESTADISTICASNEW" >> oxo.cfg
     ComprobarConf
     clear ; echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
     echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR"
@@ -273,6 +276,8 @@ Jugar(){
   done
   declare -a FICHA=("O" "X")
   declare -a POSICIONES_FICHAS_PC
+  MOVIMIENTOS=0
+  GANADOR=0
   CONTADORHUMANO=1 ; CONTADORPC=1
   TERMINAR=0
 
@@ -280,6 +285,7 @@ Jugar(){
   if [ $COMIENZO -eq 3 ]; then
     COMIENZO=$(( $RANDOM % 2 + 1  ))
   fi
+  COMIENZOORIGINAL=$COMIENZO
   #ASIGNA LAS FICHAS A ORDENADOR Y HUMANO
   if [ $COMIENZO -eq 1 ];then
     FICHAHUMANO=${FICHA[1]}
@@ -296,31 +302,63 @@ Jugar(){
     # TURNO HUMANO
     if [ $COMIENZO -eq 1 ]; then
       turnoHumano
+      MOVIMIENTOS=$((MOVIMIENTOS+1))
       CONTADORHUMANO=$((CONTADORHUMANO+1))
       COMIENZO=2
       if [ $CONTADORHUMANO -ge 3 ]; then
         comprobarTablero
-        VAR_PRUEBA=$((comprobarTablero))
-        comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e "\e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; TERMINAR=1 ; return 0 ; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e " \e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; GANADOR=1 ; TERMINAR=1 ; Estadisticas ; MostrarEstadisticas ; exit; fi
       fi
     # TURNO PC
     elif [ $COMIENZO -eq 2 ]; then
       turnoPC
+      MOVIMIENTOS=$((MOVIMIENTOS+1))
       CONTADORPC=$((CONTADORPC+1))
       COMIENZO=1
       if [ $CONTADORPC -ge 3 ]; then
         comprobarTablero
-        VAR_PRUEBA=$((comprobarTablero))
-        comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e "\e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; TERMINAR=1 ; return 0 ; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e " \e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; GANADOR=2 ; TERMINAR=1 ; Estadisticas ; MostrarEstadisticas ; exit ; fi
       fi
     fi
   done
 }
 
 Estadisticas(){
-  echo
+  #PID
+  DIA=$(date +%d-%m-%y)
+  #COMIENZO
+  #FICHACENTRAL
+  #GANADOR
+  TIME2=$(date +%s)
+  TIME=$((TIME2 - TIME1))
+  #MOVIMIENTOS (num movs)
+  #SECUENCIA JUGADAS
+}
+
+MostrarEstadisticas(){
+  echo -e "\n \e[1;4;33mDATOS\e[0m"
+  echo -e "\n \e[1;33mPARTIDA                  :\e[0m $PID"
+  echo -e "\n \e[1;33mFECHA                    :\e[0m $DIA"
+  if [ $COMIENZOORIGINAL -eq 1 ];then
+    echo -e "\n \e[1;33mCOMIENZO                 :\e[0m Comienzas tú"
+  else
+    echo -e "\n \e[1;33mCOMIENZO                 :\e[0m Comienza el PC"
+  fi
+  if [ $FICHACENTRAL -eq 1 ];then
+    echo -e "\n \e[1;33mFICHA CENTRAL            :\e[0m La ficha central no se puede mover"
+  else
+    echo -e "\n \e[1;33mFICHA CENTRAL            :\e[0m La ficha central se puede mover"
+  fi
+  if [ $GANADOR -eq 1 ];then
+    echo -e "\n \e[1;33mGANADOR                  :\e[0m Has ganado"
+  else
+    echo -e "\n \e[1;33mGANADOR                  :\e[0m Ha ganado el PC"
+  fi
+  echo -e "\n \e[1;33mDURACIÓN PARTIDA         :\e[0m $TIME segundos"
+  echo -e "\n \e[1;33mNº MOVIMIENTOS  TOTALES  :\e[0m $MOVIMIENTOS"
+  echo -e "\n \e[1;33mNº MOVIMIENTOS  JUGADOR  :\e[0m $((CONTADORHUMANO-1))\n"
+  #SECUENCIA MOVIMIENTOS
+  echo "$PID|$DIA|$COMIENZO|$FICHACENTRAL|$GANADOR|$MOVIMIENTOS" >> $ESTADISTICAS
 }
 
 Menu(){
@@ -331,7 +369,6 @@ Menu(){
   while [ "$OPCION" != "S" ]
   do
     VAR="*"
-    
     echo -e "\e[1;5;33m  __     _  _     __  ";
     echo -e " /  \   ( \/ )   /  \ ";
     echo -e "(  O )   )  (   (  O )";
@@ -347,6 +384,8 @@ Menu(){
         Configuracion
         ;;
       J | j)
+        PID=$$
+        TIME1=$(date +%s)
         Jugar
         ;;
       E | e)
@@ -358,15 +397,15 @@ Menu(){
         ;;
       *)
         echo -e "\n\nNo se ha introducido una opción válida.\n"
-        #sleep 5
+        sleep 5
         clear
         Menu
         ;;
     esac
-    echo ""
+    echo
     while [ "$VAR" != "" ];
     do
-      read -p "Introduzca INTRO para continuar >>" VAR
+      read -p "Introduzca INTRO para continuar >> " VAR
     done
     clear
   done
