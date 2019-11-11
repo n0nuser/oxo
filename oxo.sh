@@ -83,35 +83,35 @@ comprobarFichaHumanoOld(){
   OLD=$1
   TEMP=$((OLD-1))
   if [ $TEMP -ge 0 ] && [ $TEMP -lt 9 ]; then
-    echo "La posición antigua está entre los límites"
-    echo "La ficha elegida es: ${POSICION[TEMP]}"
+    #echo "La posición antigua está entre los límites"
+    #echo "La ficha elegida es: ${POSICION[TEMP]}"
     if [ "${POSICION[TEMP]}" != "$FICHAHUMANO" ]; then
-      echo "Pero no es una ficha válida"
+      #echo "Pero no es una ficha válida"
       return 1
     fi
   else
-    echo "La posición antigua no está entre los límites"
+    #echo "La posición antigua no está entre los límites"
     return 1
   fi
-
   return 0
 }
 
 comprobarFichaHumanoNew(){
-  NEW=$2
+  NEW=$1
   TEMP2=$((NEW-1))
+  #echo "Posición seleccionada: $TEMP2"
   #PROBLEMA
-  if [ $NEW -ge 0 ] && [ $NEW -lt 9 ]; then
-    echo "La nueva posición está entre los límites"
-    if [ "${POSICION[TEMP]}" != "*" ]; then
-      echo "Pero dicha posición está ocupada"
-      return 1
+  if [ $TEMP2 -ge 0 ] && [ $TEMP2 -lt 9 ]; then
+    #echo "La nueva posición está entre los límites"
+    if [ "${POSICION[TEMP2]}" == "*" ]; then
+      #echo "Y dicha posición está libre"
+      return 0
     fi
   else
-    echo "Se ha elegido una posición válida"
-    return 0
+    echo "No se ha elegido una posición válida"
+    return 1
   fi
-  return 0
+
 }
 
 turnoHumano(){
@@ -130,20 +130,20 @@ turnoHumano(){
 
   #AQUÍ YA SE HAN PUESTO LAS 3 FICHAS
   else
-    echo "El contador del humano es: $CONTADORHUMANO"
+    #echo "El contador del humano es: $CONTADORHUMANO"
     # Intercambiar posiciones de ficha humano
-    echo "POSICIONES GUARDADAS DE FICHAS PC: "
-    printf '%s ' "${POSICIONES_FICHAS_PC[@]}"
-    echo
-
+    #echo "POSICIONES GUARDADAS DE FICHAS PC: "
+    #echo -e "$((${POSICIONES_FICHAS_PC[0]}+1))"
+    #echo -e "$((${POSICIONES_FICHAS_PC[1]}+1))"
+    #echo -e "$((${POSICIONES_FICHAS_PC[2]}+1))"
 
     read -p "Inserta posición ficha a mover: " POS_HUM_OLD
     comprobarFichaHumanoOld $POS_HUM_OLD
     RECIBIDO=$?
-    echo $RECIBIDO
+    #echo $RECIBIDO
     while [ $RECIBIDO -eq 1 ]
     do
-      echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
+      #echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
       read -p "Inserta posición ficha a mover: " POS_HUM_OLD
       comprobarFichaHumanoOld $POS_HUM_OLD
     done
@@ -154,7 +154,7 @@ turnoHumano(){
     RECIBIDO=$?
     while [ $RECIBIDO -eq 1 ]
     do
-      echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
+      #echo "Entra en el bucle while. Se ha devuelto: $RECIBIDO"
       read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
       comprobarFichaHumanoNew $POS_HUM_NEW
     done
@@ -180,22 +180,27 @@ comprobarFichaPC(){
 
 
 comprobarFichaPCNew(){
-  # Aleatorio entre 0 - 1 - 2
+  # POSICIÓN ANTIGUA
   POS_RAND=$(( $RANDOM % 3 ))
-  POS_PC_OLD=$POSICIONES_FICHAS_PC[$POS_RAND]
-  echo "Posición antigua elegida por el PC: $POS_PC_OLD"
-  sleep 5
+  POS_PC_OLD=${POSICIONES_FICHAS_PC[$POS_RAND]}
+  #echo "Posición antigua elegida por el PC: $((POS_PC_OLD+1))"
+  #sleep 5
+
+  # POSICIÓN NUEVA
   POS_PC_NEW=$(( $RANDOM % 9 ))
-  echo "Nueva posición elegida por el PC: $POS_PC_NEW"
+  #echo "Nueva posición elegida por el PC: $((POS_PC_NEW+1))"
+  #sleep 3
   while [ "${POSICION[$POS_PC_NEW]}" != "*" ]
   do
-    echo "Nueva posición incorrecta"
+    #echo "Entra en el while del pc"
     POS_PC_NEW=$(( $RANDOM % 9 ))
-    echo "Se acaba de elegir: $POS_PC_NEW"
-    sleep 5
+    #echo "Se acaba de elegir: $((POS_PC_NEW+1))"
+    #sleep 5
   done
+  # Actualiza los valores de las posiciones entre las que elige el pc (antiguas)
   POSICIONES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
-  POSICION_PC=$POSICIONES_FICHAS_PC[$POS_RAND]
+  #
+  # POSICION_PC=$POSICIONES_FICHAS_PC[$POS_RAND]
 }
 
 turnoPC(){
@@ -207,6 +212,8 @@ turnoPC(){
     POSICION[$?]="$FICHAPC"
   else
     comprobarFichaPCNew
+    POSICION[$((POS_PC_OLD))]="*"
+    POSICION[$((POS_HUM_NEW))]="$FICHAPC"
   fi
 
 }
@@ -342,6 +349,7 @@ Menu(){
   echo -e "\e[1;33m E)\e[0m ESTADÍSTICAS"
   echo -e "\e[1;33m J)\e[0m JUGAR"
   echo -e "\e[1;33m S)\e[0m SALIR\n"
+  echo -e "Esta es mi prueba =D\n"
   # Leer la opción del menú
   # -p Muestra el texto y pregunta sin meter salto de línea
   echo -en " \e[1;4mOXO\e[0m. Introduzca una opción >> "; read OPCION
