@@ -349,7 +349,7 @@ Menu(){
   echo -e "\e[1;33m E)\e[0m ESTADÍSTICAS"
   echo -e "\e[1;33m J)\e[0m JUGAR"
   echo -e "\e[1;33m S)\e[0m SALIR\n"
-  echo -e "Esta es mi prueba =D\n"
+
   # Leer la opción del menú
   # -p Muestra el texto y pregunta sin meter salto de línea
   echo -en " \e[1;4mOXO\e[0m. Introduzca una opción >> "; read OPCION
