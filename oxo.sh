@@ -328,9 +328,10 @@ Menu(){
   # Leer la opción del menú
   # -p Muestra el texto y pregunta sin meter salto de línea
 
-  VAR="*"
   while [ "$OPCION" != "S" ]
   do
+    VAR="*"
+    
     echo -e "\e[1;5;33m  __     _  _     __  ";
     echo -e " /  \   ( \/ )   /  \ ";
     echo -e "(  O )   )  (   (  O )";
