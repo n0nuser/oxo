@@ -338,29 +338,39 @@ Menu(){
 
   # Leer la opción del menú
   # -p Muestra el texto y pregunta sin meter salto de línea
-  echo -en " \e[1;4mOXO\e[0m. Introduzca una opción >> "; read OPCION
-  case $OPCION in
-    C | c)
-      Configuracion
-    ;;
-    J | j)
-      Jugar
-    ;;
-    E | e)
-      Estadisticas
-    ;;
-    S | s)
-      echo -e "\n\t\e[1;33mSaliendo\e[0m del programa...\n"
-      exit;
-    ;;
-    *)
-      echo -e "\n\nNo se ha introducido una opción válida.\n"
-      #sleep 5
-      #clear
-      Menu
-    ;;
-  esac
-  Menu
+  OPCION=A
+  VAR_ESPERA=" "
+  while [ "$OPCION" != "S"]
+  do
+    Menu
+    echo -en " \e[1;4mOXO\e[0m. Introduzca una opción >> "; read OPCION
+    case $OPCION in
+      C | c)
+        Configuracion
+        ;;
+      J | j)
+        Jugar
+        ;;
+      E | e)
+        Estadisticas
+        ;;
+      S | s)
+        echo -e "\n\t\e[1;33mSaliendo\e[0m del programa...\n"
+        exit;
+        ;;
+      *)
+        echo -e "\n\nNo se ha introducido una opción válida.\n"
+        #sleep 5
+        clear
+        Menu
+        ;;
+    esac
+    while [ "$VAR" != "\n" ]; 
+    do
+      read -p "\nIntroduzca INTRO para continuar >>" VAR
+    done
+    clear
+  done
 }
 
 if [ "$1" = "-g" ];then
