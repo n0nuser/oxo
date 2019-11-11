@@ -251,7 +251,6 @@ Configuracion(){
       read -p " Elija una opción >> " OPT_CONF
     done
   done
-  clear
   return 0
 }
 
@@ -328,7 +327,7 @@ Menu(){
   clear
   # Leer la opción del menú
   # -p Muestra el texto y pregunta sin meter salto de línea
-  
+
   VAR="*"
   while [ "$OPCION" != "S" ]
   do
@@ -363,7 +362,8 @@ Menu(){
         Menu
         ;;
     esac
-    while [ "$VAR" != "" ]; 
+    echo ""
+    while [ "$VAR" != "" ];
     do
       read -p "Introduzca INTRO para continuar >>" VAR
     done
