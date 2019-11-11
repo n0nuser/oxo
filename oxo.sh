@@ -85,7 +85,7 @@ comprobarFichaHumanoOld(){
   if [ $TEMP -ge 0 ] && [ $TEMP -lt 9 ]; then
     if [ "${POSICION[$TEMP]}" != "$FICHAHUMANO" ]; then
       return 1
-    elif [ $TEMP -eq 4 ] && [ $FICHACENTRAL -eq 2 ];then
+    elif [ $TEMP -eq 4 ] && [ $FICHACENTRAL -eq 1 ];then
       return 1
     fi
   else
