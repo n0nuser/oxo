@@ -109,7 +109,7 @@ comprobarFichaHumanoNew(){
 }
 
 turnoHumano(){
-  #CAMBIARLO PARA OTRO DIA
+  #CAMBIARLO PARA OTRO FECHA
   echo -e "\e[1;4mTURNO HUMANO\e[0m\n\n"
   if [ $CONTADORHUMANO -le 3 ]; then
     read -p "Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
@@ -307,7 +307,7 @@ Jugar(){
       COMIENZO=2
       if [ $CONTADORHUMANO -ge 3 ]; then
         comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e " \e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; GANADOR=1 ; TERMINAR=1 ; Estadisticas ; MostrarEstadisticas ; exit; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e " \e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; GANADOR=1 ; TERMINAR=1 ; MostrarEstadisticas ; exit; fi
       fi
     # TURNO PC
     elif [ $COMIENZO -eq 2 ]; then
@@ -317,15 +317,57 @@ Jugar(){
       COMIENZO=1
       if [ $CONTADORPC -ge 3 ]; then
         comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e " \e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; GANADOR=2 ; TERMINAR=1 ; Estadisticas ; MostrarEstadisticas ; exit ; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e " \e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; GANADOR=2 ; TERMINAR=1 ; MostrarEstadisticas ; exit ; fi
       fi
     fi
   done
 }
 
 Estadisticas(){
+  if [ ! -f $ESTADISTICAS ];then
+    echo "No existe el fichero de estadisticas indicado en el archivo de configuración."
+    return 1
+  elif [ $(wc -l "$ESTADISTICAS" | cut -b 1) -eq 0 ];then
+    echo "El archivo está vacío ya que no se ha jugado ninguna partida todavía."
+  fi
+  # LEER DATOS DEL ARCHIVO *.log
+  MEDIA_TIEMPO=0
+  CONTADOR_MEDIA=1
+  TOTAL_TIEMPO=0
+  PARTIDA_MAS_LARGA=0
+  PARTIDA_MAS_CORTA=999999999999999
+  while IFS="|" read PID_FILE FECHA_FILE COMIENZO_FILE CENTRAL_FILE GANADOR_FILE TIME_FILE MOVS_FILE #SEQ_FILE
+  do
+    CONTADOR_MEDIA=$((CONTADOR_MEDIA+1))
+    MEDIA_TIEMPO=$((MEDIA_TIEMPO+TIME_FILE))
+    if [ $PARTIDA_MAS_LARGA -lt $TIME_FILE ];then
+      PARTIDA_MAS_LARGA=$TIME_FILE
+    fi
+    if [ $PARTIDA_MAS_CORTA -gt $TIME_FILE ];then
+      PARTIDA_MAS_CORTA=$TIME_FILE
+    fi
+  done < $ESTADISTICAS
+  TOTAL_TIEMPO=$MEDIA_TIEMPO
+  MEDIA_TIEMPO=$((MEDIA_TIEMPO/CONTADOR_MEDIA))
+  # GENERAL
+  clear
+  echo -e "\n \e[1;4;33mESTADÍSTICAS\e[0m\n"
+  echo -e "\n \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | cut -b 1)";
+  #HAY QUE HACER MEDIA DE LAS LONGITUDES DE LOS MOVIMIENTOS ¿Qué lechugas?
+  echo -e "\n \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $MEDIA_TIEMPO segundos"
+  echo -e "\n \e[1;33mTIEMPO JUGADO TOTAL:\e[0m $TOTAL_TIEMPO segundos"
+
+  # JUGADAS ESPECIALES
+  echo -e "\n\n \e[1;33mPARTIDA MÁS CORTA:\e[0m $PARTIDA_MAS_CORTA segundos"
+  echo -e "\n \e[1;33mPARTIDA MÁS LARGA:\e[0m $PARTIDA_MAS_LARGA segundos"
+  #JUGADA EN MAS MOVS
+  #JUGADA EN MENOS MOVS
+  #NºVECES CASILLA MEDIO OCUPADA EN PARTIDA MENOS TIEMPOS RESPECTO TOTAL PARTIDAS
+}
+
+MostrarEstadisticas(){
   #PID
-  DIA=$(date +%d-%m-%y)
+  FECHA=$(date +%d-%m-%y)
   #COMIENZO
   #FICHACENTRAL
   #GANADOR
@@ -333,12 +375,10 @@ Estadisticas(){
   TIME=$((TIME2 - TIME1))
   #MOVIMIENTOS (num movs)
   #SECUENCIA JUGADAS
-}
 
-MostrarEstadisticas(){
   echo -e "\n \e[1;4;33mDATOS\e[0m"
   echo -e "\n \e[1;33mPARTIDA                  :\e[0m $PID"
-  echo -e "\n \e[1;33mFECHA                    :\e[0m $DIA"
+  echo -e "\n \e[1;33mFECHA                    :\e[0m $FECHA"
   if [ $COMIENZOORIGINAL -eq 1 ];then
     echo -e "\n \e[1;33mCOMIENZO                 :\e[0m Comienzas tú"
   else
@@ -357,8 +397,8 @@ MostrarEstadisticas(){
   echo -e "\n \e[1;33mDURACIÓN PARTIDA         :\e[0m $TIME segundos"
   echo -e "\n \e[1;33mNº MOVIMIENTOS  TOTALES  :\e[0m $MOVIMIENTOS"
   echo -e "\n \e[1;33mNº MOVIMIENTOS  JUGADOR  :\e[0m $((CONTADORHUMANO-1))\n"
-  #SECUENCIA MOVIMIENTOS
-  echo "$PID|$DIA|$COMIENZO|$FICHACENTRAL|$GANADOR|$MOVIMIENTOS" >> $ESTADISTICAS
+  # QUEDA SECUENCIA MOVIMIENTOS
+  echo "$PID|$FECHA|$COMIENZOORIGINAL|$FICHACENTRAL|$GANADOR|$TIME|$MOVIMIENTOS" >> $ESTADISTICAS
 }
 
 Menu(){
