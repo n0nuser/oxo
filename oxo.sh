@@ -259,7 +259,6 @@ Configuracion(){
 
 Jugar(){
   clear
-  echo -e "\nEl tablero es de la siguiente forma:"
   echo -e "\n\n\t 1 | 2 | 3 "
   echo -e "\t===·===·==="
   echo -e "\t 4 | 5 | 6 "
@@ -298,7 +297,10 @@ Jugar(){
   while [ TERMINAR != 1 ]
   do
     clear
-    echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n"
+    
+    echo -e "   Fecha de juego: $(date +%d-%m-%y)\t\t "
+    echo -e "\n\n\t\t\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t\t\t === === ===\n\t\t\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t\t\t === === ===\n\t\t\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n"
+    echo -e "\n   Movimientos del jugador: $(($CONTADORHUMANO-1))  ||  Movimientos del ordenador: $(($CONTADORPC-1))\n\n"
     # TURNO HUMANO
     if [ $COMIENZO -eq 1 ]; then
       turnoHumano
