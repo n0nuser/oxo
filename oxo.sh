@@ -110,13 +110,13 @@ comprobarFichaHumanoNew(){
 
 turnoHumano(){
   #CAMBIARLO PARA OTRO FECHA
-  echo -e "\e[1;4mTURNO HUMANO\e[0m\n\n"
+  echo -e "  \e[1;4;33mTURNO HUMANO\e[0m\n\n"
   if [ $CONTADORHUMANO -le 3 ]; then
-    read -p "Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
+    read -p "  Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
     CPB_FCH_HUM=$(comprobarFichaHumano "$POS_HUM_NEW")
     while [ $? -eq 1 ]
     do
-      read -p "Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
+      read -p "  Inserta posición de ficha '$FICHAHUMANO': " POS_HUM_NEW
       CPB_FCH_HUM=$(comprobarFichaHumano "$POS_HUM_NEW")
     done
     POSICION[$((POS_HUM_NEW-1))]="$CPB_FCH_HUM"
@@ -124,30 +124,28 @@ turnoHumano(){
 
   #AQUÍ YA SE HAN PUESTO LAS 3 FICHAS
   else
-    # Intercambiar posiciones de ficha humano
-    #echo "POSICIONES GUARDADAS DE FICHAS PC: "
-    #echo -e "$((${POSICIONES_FICHAS_PC[0]}+1))"
-    #echo -e "$((${POSICIONES_FICHAS_PC[1]}+1))"
-    #echo -e "$((${POSICIONES_FICHAS_PC[2]}+1))"
-
-    read -p "Inserta posición ficha a mover: " POS_HUM_OLD
+    # POSICIÓN ANTIGUA
+    read -p "  Inserta posición ficha a mover: " POS_HUM_OLD
     comprobarFichaHumanoOld $POS_HUM_OLD
     while [ $? -eq 1 ]
     do
-      read -p "Inserta posición ficha a mover: " POS_HUM_OLD
+      read -p "  Inserta posición ficha a mover: " POS_HUM_OLD
       comprobarFichaHumanoOld $POS_HUM_OLD
     done
-
-
-    read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
+    # POSICIÓN NUEVA
+    read -p "  Inserta nueva posición de ficha: " POS_HUM_NEW
     comprobarFichaHumanoNew $POS_HUM_NEW
     while [ $? -eq 1 ]
     do
-      read -p "Inserta nueva posición de ficha: " POS_HUM_NEW
+      read -p "  Inserta nueva posición de ficha: " POS_HUM_NEW
       comprobarFichaHumanoNew $POS_HUM_NEW
     done
     POSICION[$((POS_HUM_OLD-1))]="*"
     POSICION[$((POS_HUM_NEW-1))]="$FICHAHUMANO"
+    INTERCAMBIO_MOVIMIENTOS_FILE[$CONTADORMOVIMIENTOS]="$COMIENZO.$((POS_HUM_OLD)).$((POS_HUM_NEW))"
+    # RETURN 5 PARA EL CONTADOR DE MOVIMIENTOS
+    #   PARA LA SECUENCIA EN EL LOG
+    return 5
   fi
 }
 
@@ -170,29 +168,21 @@ comprobarFichaPCNew(){
   # POSICIÓN ANTIGUA
   POS_RAND=$(( $RANDOM % 3 ))
   POS_PC_OLD=${POSICIONES_FICHAS_PC[$POS_RAND]}
-  #echo "Posición antigua elegida por el PC: $((POS_PC_OLD+1))"
-  #sleep 5
 
   # POSICIÓN NUEVA
   POS_PC_NEW=$(( $RANDOM % 9 ))
-  #echo "Nueva posición elegida por el PC: $((POS_PC_NEW+1))"
-  #sleep 5
   while [ "${POSICION[$POS_PC_NEW]}" != "*" ]
   do
-    #sleep 5
     POS_PC_NEW=$(( $RANDOM % 9 ))
-    #echo "Se acaba de elegir: $((POS_PC_NEW+1))"
-    #echo "El valor de la posición elegida es: "${POSICION[$POS_PC_NEW]}""
-    #sleep 5
   done
   # Actualiza los valores de las posiciones entre las que elige el pc (antiguas)
   POSICIONES_FICHAS_PC[$POS_RAND]=$POS_PC_NEW
 }
 
 turnoPC(){
-  echo -e "\e[1;4mTURNO PC\e[0m\n\n"
+  echo -e "  \e[1;4;33mTURNO PC\e[0m\n\n"
   #ANTES DE CUMPLIR 3 MOVS.
-  #sleep 4
+  sleep 1.5
   if [ $CONTADORPC -le 3 ]; then
     comprobarFichaPC
     POSICION[$?]="$FICHAPC"
@@ -200,8 +190,11 @@ turnoPC(){
     comprobarFichaPCNew
     POSICION[$((POS_PC_OLD))]="*"
     POSICION[$((POS_PC_NEW))]="$FICHAPC"
+    INTERCAMBIO_MOVIMIENTOS_FILE[$CONTADORMOVIMIENTOS]="$COMIENZO.$((POS_PC_OLD)).$((POS_PC_NEW))"
+    # RETURN 5 PARA EL CONTADOR DE MOVIMIENTOS
+    #   PARA LA SECUENCIA EN EL LOG
+    return 5
   fi
-
 }
 
 Configuracion(){
@@ -259,26 +252,41 @@ Configuracion(){
 
 Jugar(){
   clear
-  echo -e "\n\n\t 1 | 2 | 3 "
+  echo -e "\n       \e[1;4;33mORDEN CASILLAS\e[0m"
+  echo -e "\n\t 1 | 2 | 3 "
   echo -e "\t===·===·==="
   echo -e "\t 4 | 5 | 6 "
   echo -e "\t===·===·==="
   echo -e "\t 7 | 8 | 9 "
 
-  #sleep 5
-  #clear
+  sleep 3
+  clear
 
   # VARIABLES
+  ###########
+  # ARRAY UTILIZADO PARA ALMACENAR LAS POSICIONES DE LAS X y O
   declare -a POSICION
   for (( i = 0; i < 9; i++ )); do
     POSICION[$i]="*"
   done
+  # ARRAY PARA ASIGNAR X ó O A HUMANO O PC
   declare -a FICHA=("O" "X")
+  # ARRAY PARA GUARDAR POSICIONES DE LAS FICHAS PC
+  # ASÍ SE AHORRA COSTE COMPUTACIONAL AL AHORRARSE EL RAND Y LA COMPROBACIÓN
   declare -a POSICIONES_FICHAS_PC
+  # ARRAY PARA GUARDAR EN POSICIONES LA SECUENCIA DE MOVIMIENTOS
+  # EN CADA POSICIÓN VA: "1.5.3" "2.2.7" ...
+  declare -a INTERCAMBIO_MOVIMIENTOS_FILE
+  # VARIABLE PARA
   MOVIMIENTOS=0
+  # VARIABLE PARA VERIFICAR GANADOR
   GANADOR=0
+  # VARIABLE PARA VER CUANTOS MOVIMIENTOS LLEVA CADA JUGADOR
   CONTADORHUMANO=1 ; CONTADORPC=1
+  # VARIABLE PARA TERMINAR LA PARTIDA SI == 1
   TERMINAR=0
+  # VARIABLE PARA EMPEZAR A CONTAR CUANDO SE HAN COLOCADO YA LAS 3 FICHAS
+  CONTADORMOVIMIENTOS=0
 
   #ASIGNA A COMIENZO UN VALOR ALEATORIO ENTRE 1 Y 2
   if [ $COMIENZO -eq 3 ]; then
@@ -297,29 +305,39 @@ Jugar(){
   while [ TERMINAR != 1 ]
   do
     clear
-    
-    echo -e "   Fecha de juego: $(date +%d-%m-%y)\t\t "
-    echo -e "\n\n\t\t\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t\t\t === === ===\n\t\t\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t\t\t === === ===\n\t\t\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n"
-    echo -e "\n   Movimientos del jugador: $(($CONTADORHUMANO-1))  ||  Movimientos del ordenador: $(($CONTADORPC-1))\n\n"
+    echo -e "\n  Fecha de juego: $(date +%d-%m-%y)\n\n  Comienzo partida: $TIME1 segundos"
+    echo -e "\n\n  \e[1;33m|\e[0m ${POSICION[0]} \e[1;33m|\e[0m ${POSICION[1]} \e[1;33m|\e[0m ${POSICION[2]} \e[1;33m|\n   === === ===\n  |\e[0m ${POSICION[3]} \e[1;33m|\e[0m ${POSICION[4]} \e[1;33m|\e[0m ${POSICION[5]} \e[1;33m|\n   === === ===\n  |\e[0m ${POSICION[6]} \e[1;33m|\e[0m ${POSICION[7]} \e[1;33m|\e[0m ${POSICION[8]} \e[1;33m|\e[0m\n\n"
+    echo -e "  Movimientos del jugador: $((CONTADORHUMANO-1))\n\n  Movimientos del ordenador: $((CONTADORPC-1))\n\n"
     # TURNO HUMANO
     if [ $COMIENZO -eq 1 ]; then
       turnoHumano
+      if [ $? -eq 5 ];then
+        # ESTOS MOVIMIENTOS SON SÓLO SI YA SE HAN COLOCADO LAS 3 FICHAS Y SE SE ESTÁN INTERCAMBIANDO
+
+        # SE INCREMENTA DESPUÉS DE COLOCAR FICHA PARA GARANTIZAR LA POSICIÓN ANTERIOR,
+        # UN CLARO EJEMPLO ES QUE ASÍ EMPIEZA EL ARRAY DESDE 0 Y NO DESDE 1.
+        CONTADORMOVIMIENTOS=$((CONTADORMOVIMIENTOS+1))
+      fi
       MOVIMIENTOS=$((MOVIMIENTOS+1))
       CONTADORHUMANO=$((CONTADORHUMANO+1))
       COMIENZO=2
       if [ $CONTADORHUMANO -ge 3 ]; then
         comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e " \e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; GANADOR=1 ; TERMINAR=1 ; MostrarEstadisticas ; exit; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ;  echo -e " \e[1;5;33m¡HAS GANADO! 🏆\e[0m \n"; GANADOR=1 ; TERMINAR=1 ; for i in ${INTERCAMBIO_MOVIMIENTOS_FILE[@]}; do SEQ_POS+="$i:"; done ; MostrarEstadisticas ; exit; fi
       fi
     # TURNO PC
     elif [ $COMIENZO -eq 2 ]; then
       turnoPC
+      if [ $? -eq 5 ];then
+        # ESTOS MOVIMIENTOS SON SÓLO SI YA SE HAN COLOCADO LAS 3 FICHAS Y SE SE ESTÁN INTERCAMBIANDO
+        CONTADORMOVIMIENTOS=$((CONTADORMOVIMIENTOS+1))
+      fi
       MOVIMIENTOS=$((MOVIMIENTOS+1))
       CONTADORPC=$((CONTADORPC+1))
       COMIENZO=1
       if [ $CONTADORPC -ge 3 ]; then
         comprobarTablero
-        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e " \e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; GANADOR=2 ; TERMINAR=1 ; MostrarEstadisticas ; exit ; fi
+        if [ $? -eq 1 ]; then clear ; echo -e "\n\n\t| ${POSICION[0]} | ${POSICION[1]} | ${POSICION[2]} |\n\t === === ===\n\t| ${POSICION[3]} | ${POSICION[4]} | ${POSICION[5]} |\n\t === === ===\n\t| ${POSICION[6]} | ${POSICION[7]} | ${POSICION[8]} |\n\n" ; echo -e " \e[1;5;33m¡HAS PERDIDO! 😞\e[0m \n" ; GANADOR=2 ; TERMINAR=1 ; for i in ${INTERCAMBIO_MOVIMIENTOS_FILE[@]}; do SEQ_POS+="$i:"; done ; MostrarEstadisticas ; exit; fi
       fi
     fi
   done
@@ -338,33 +356,46 @@ Estadisticas(){
   TOTAL_TIEMPO=0
   PARTIDA_MAS_LARGA=0
   PARTIDA_MAS_CORTA=999999999999999
-  while IFS="|" read PID_FILE FECHA_FILE COMIENZO_FILE CENTRAL_FILE GANADOR_FILE TIME_FILE MOVS_FILE #SEQ_FILE
+  PARTIDA_MAS_MOVS=0
+  PARTIDA_MENOS_MOVS=999999999999999
+  TOTAL_CASILLA_MEDIO=0
+  while IFS="|" read PID_FILE FECHA_FILE COMIENZO_FILE CENTRAL_FILE GANADOR_FILE TIME_FILE MOVS_FILE SEQ_FILE
   do
     CONTADOR_MEDIA=$((CONTADOR_MEDIA+1))
     MEDIA_TIEMPO=$((MEDIA_TIEMPO+TIME_FILE))
-    if [ $PARTIDA_MAS_LARGA -lt $TIME_FILE ];then
-      PARTIDA_MAS_LARGA=$TIME_FILE
-    fi
-    if [ $PARTIDA_MAS_CORTA -gt $TIME_FILE ];then
-      PARTIDA_MAS_CORTA=$TIME_FILE
-    fi
+    if [ $PARTIDA_MAS_LARGA -lt $TIME_FILE ];then PARTIDA_MAS_LARGA=$TIME_FILE; fi
+    if [ $PARTIDA_MAS_CORTA -gt $TIME_FILE ];then PARTIDA_MAS_CORTA=$TIME_FILE; fi
+    if [ $PARTIDA_MAS_MOVS -lt $MOVS_FILE ];then PARTIDA_MAS_MOVS=$MOVS_FILE; fi
+    #if [ $PARTIDA_MENOS_MOVS -gt $MOVS_FILE ];then PARTIDA_MENOS_MOVS=$MOVS_FILE; CASILLO_MEDIO=$((echo "${$SEQ_FILE}" | awk -F"5" '{print NF-1}')) ; fi #CASILLA_MEDIO=$((echo "$SEQ_FILE" | grep -o '5' | grep -c .)) ; fi
+    #AUX=$((echo "$SEQ_FILE" | grep -o '5' | grep -c .))
+    #AUX=$((echo "${$SEQ_FILE}" | awk -F"5" '{print NF-1}'))
+    #TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+$AUX))
+    if [ $PARTIDA_MENOS_MOVS -gt $MOVS_FILE ];then PARTIDA_MENOS_MOVS=$MOVS_FILE; fi
   done < $ESTADISTICAS
   TOTAL_TIEMPO=$MEDIA_TIEMPO
   MEDIA_TIEMPO=$((MEDIA_TIEMPO/CONTADOR_MEDIA))
   # GENERAL
   clear
-  echo -e "\n \e[1;4;33mESTADÍSTICAS\e[0m\n"
+  echo -e "\n \e[1;4mESTADÍSTICAS\e[0m\n"
   echo -e "\n \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | cut -b 1)";
   #HAY QUE HACER MEDIA DE LAS LONGITUDES DE LOS MOVIMIENTOS ¿Qué lechugas?
-  echo -e "\n \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $MEDIA_TIEMPO segundos"
-  echo -e "\n \e[1;33mTIEMPO JUGADO TOTAL:\e[0m $TOTAL_TIEMPO segundos"
+  if [ $MEDIA_TIEMPO -gt 60 ];then
+    echo -e "\n \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $(($MEDIA_TIEMPO/60)) minuto(s) y $(($MEDIA_TIEMPO%60)) segundos"
+  else
+    echo -e "\n \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $MEDIA_TIEMPO segundos"
+  fi
+  if [ $TOTAL_TIEMPO -gt 60 ];then
+    echo -e "\n \e[1;33mTIEMPO JUGADO TOTAL:\e[0m $(($TOTAL_TIEMPO/60)) minuto(s) y $(($TOTAL_TIEMPO%60)) segundos"
+  else
+    echo -e "\n \e[1;33mTIEMPO JUGADO TOTAL:\e[0m $TOTAL_TIEMPO segundos"
+  fi
 
   # JUGADAS ESPECIALES
   echo -e "\n\n \e[1;33mPARTIDA MÁS CORTA:\e[0m $PARTIDA_MAS_CORTA segundos"
   echo -e "\n \e[1;33mPARTIDA MÁS LARGA:\e[0m $PARTIDA_MAS_LARGA segundos"
-  #JUGADA EN MAS MOVS
-  #JUGADA EN MENOS MOVS
-  #NºVECES CASILLA MEDIO OCUPADA EN PARTIDA MENOS TIEMPOS RESPECTO TOTAL PARTIDAS
+  echo -e "\n \e[1;33mPARTIDA CON MÁS MOVIMIENTOS:\e[0m $PARTIDA_MAS_MOVS movimientos"
+  echo -e "\n \e[1;33mPARTIDA CON MENOS MOVIMIENTOS:\e[0m $PARTIDA_MENOS_MOVS movimientos"
+  #echo -e "\n \e[1;33mNº VECES LA CASILLA CENTRAL HA SIDO OCUPADA EN LA PARTIDA MÁS CORTA (TIEMPO)\n RESPECTO AL TOTAL:\e[0m $CASILLA_MEDIO VS $TOTAL_CASILLA_MEDIO"
 }
 
 MostrarEstadisticas(){
@@ -376,7 +407,7 @@ MostrarEstadisticas(){
   TIME2=$(date +%s)
   TIME=$((TIME2 - TIME1))
   #MOVIMIENTOS (num movs)
-  #SECUENCIA JUGADAS
+  #SECUENCIA JUGADAS → ${SEQ_POS%?}
 
   echo -e "\n \e[1;4;33mDATOS\e[0m"
   echo -e "\n \e[1;33mPARTIDA                  :\e[0m $PID"
@@ -400,7 +431,7 @@ MostrarEstadisticas(){
   echo -e "\n \e[1;33mNº MOVIMIENTOS  TOTALES  :\e[0m $MOVIMIENTOS"
   echo -e "\n \e[1;33mNº MOVIMIENTOS  JUGADOR  :\e[0m $((CONTADORHUMANO-1))\n"
   # QUEDA SECUENCIA MOVIMIENTOS
-  echo "$PID|$FECHA|$COMIENZOORIGINAL|$FICHACENTRAL|$GANADOR|$TIME|$MOVIMIENTOS" >> $ESTADISTICAS
+  echo "$PID|$FECHA|$COMIENZOORIGINAL|$FICHACENTRAL|$GANADOR|$TIME|$MOVIMIENTOS|${SEQ_POS%?}" >> $ESTADISTICAS
 }
 
 Menu(){
