@@ -168,6 +168,12 @@ comprobarFichaPCNew(){
   # POSICIÓN ANTIGUA
   POS_RAND=$(( $RANDOM % 3 ))
   POS_PC_OLD=${POSICIONES_FICHAS_PC[$POS_RAND]}
+  if [ [ $FICHACENTRAL -eq 1 ] && [ $POS_PC_OLD == 4 ] ]; then
+      while [ $POS_PC_OLD == 4 ]
+      do
+        POS_PC_NEW=$(( $RANDOM % 9 ))
+      done
+  fi
 
   # POSICIÓN NUEVA
   POS_PC_NEW=$(( $RANDOM % 9 ))
