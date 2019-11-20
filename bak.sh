@@ -6,13 +6,19 @@ ComprobarConf() {
       echo -e "\e[1;31mERROR\e[0m. El archivo $FILE no existe."
       exit;
   fi
-
-  if [ $(wc -l "$FILE" | cut -b 1) -ne 3 ];then
+  if [ $(wc -l $FILE | tr -d " \t" | cut -b 1) -ne 3 ];then
     echo -e "\e[1;31mERROR\e[0m. El fichero $FILE no tiene los 3 campos necesarios (COMIENZO, FICHACENTRAL, ESTADISTICAS)."
     #Configuracion
     exit;
   fi
 
+  for i in "COMIENZO" "FICHACENTRAL" "ESTADISTICAS";do
+    cat $FILE | grep $i >/dev/null 2>&1
+    if [ $? -ne 0 ];then
+      echo -e "\e[1;31mERROR\e[0m. En el archivo no se encuentra \"$i\""
+      exit
+    fi
+  done
   # Recoger los datos del fichero
   while IFS="=" read DATO VALOR
   do
@@ -35,7 +41,6 @@ ComprobarConf() {
     echo -e "\e[1;31mERROR\e[0m. No se ha introducido un valor correcto de la FICHACENTRAL (1 o 2)."
     exit;
   fi
-  touch
 }
 
 comprobarTablero() {
@@ -186,8 +191,10 @@ turnoPC(){
   sleep 1.5
   if [ $CONTADORPC -le 3 ]; then
     comprobarFichaPC
-    POSICION[$?]="$FICHAPC"
-    INTERCAMBIO_MOVIMIENTOS_FILE[$CONTADORMOVIMIENTOS]="$COMIENZO.0.$((POS_PC_NEW))"
+    POS_PC_NEW=$?
+    POSICION[POS_PC_NEW]="$FICHAPC"
+    TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+1));
+    INTERCAMBIO_MOVIMIENTOS_FILE[$CONTADORMOVIMIENTOS]="$COMIENZO.0.$((POS_PC_NEW+1))"
     #DESPUÉS DE CUMPLIR 3 MOVS.
   else
     comprobarFichaPCNew
@@ -207,8 +214,7 @@ Configuracion(){
   echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
   echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR\n"
   read -p " Elija una opción >> " OPT_CONF
-  while [ $OPT_CONF -ne 1 ] && [ $OPT_CONF -ne 2 ] && [ $OPT_CONF -ne 3 ] && [ $OPT_CONF -ne 0 ] && [ "$OPT_CONF" = "" ]
-  do
+  while ! [[ $OPT_CONF =~ ^-?[0-3]+$ ]];do
     read -p " Elija una opción >> " OPT_CONF
   done
   while [ $OPT_CONF -ne 0 ]
@@ -244,6 +250,11 @@ Configuracion(){
       0)
         return 0
       ;;
+      *)
+        echo " Opción ERRÓNEA."
+        sleep 1
+        configuración
+      ;;
     esac
     echo "COMIENZO=$COMIENZONEW" > oxo.cfg
     echo "FICHACENTRAL=$FICHACENTRALNEW" >> oxo.cfg
@@ -253,8 +264,7 @@ Configuracion(){
     echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
     echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR"
     read -p " Elija una opción >> " OPT_CONF
-    while [ $OPT_CONF -ne 1 ] && [ $OPT_CONF -ne 2 ] && [ $OPT_CONF -ne 3 ] && [ $OPT_CONF -ne 0 ]
-    do
+    while ! [[ $OPT_CONF =~ ^-?[0-3]+$ ]];do
       echo -e "\n\nNo se ha introducido una opción válida.\n"
       read -p " Elija una opción >> " OPT_CONF
     done
@@ -340,7 +350,7 @@ Estadisticas(){
   if [ ! -f $ESTADISTICAS ];then
     echo "No existe el fichero de estadisticas indicado en el archivo de configuración."
     return 1
-  elif [ $(wc -l "$ESTADISTICAS" | cut -b 1) -eq 0 ];then
+  elif [ "$(wc -l "$ESTADISTICAS" | tr -d " \t" | cut -b 1)" = "0" ];then
     echo "El archivo está vacío ya que no se ha jugado ninguna partida todavía."
   fi
   # LEER DATOS DEL ARCHIVO *.log
@@ -375,20 +385,18 @@ Estadisticas(){
         # AQUÍ ENCUENTRA LA SEGUNDA FICHA
         if [[ "$CHAR" = "5" && $FLAG -eq 0 ]];then FLAG=1
         # AQUÍ LA PRIMERA
-      elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; fi
+      elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; CASILLA_MEDIO=$((CASILLA_MEDIO+1)); fi
         if [ $FLAG -eq 0 ];then CASILLA_MEDIO=$((CASILLA_MEDIO+1)); fi
         i=$((i+1))
       done
     fi
     # MOVIMIENTOS TOTALES EN CASILLA DEL MEDIO
     i=1; FLAG=1
-    echo -e "\n\n$CADENA"
     while [ $i -ne ${#CADENA} ]; do
       CHAR=$(echo $CADENA | cut -b $i)
       if [[ "$CHAR" = "5" && $FLAG -eq 0 ]];then FLAG=1
-    elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; fi
+    elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+1)); fi
       if [ $FLAG -eq 0 ];then TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+1)); fi
-      echo "Pos $i || TCM = $TOTAL_CASILLA_MEDIO"
       i=$((i+1))
     done
   done < $ESTADISTICAS
@@ -397,7 +405,7 @@ Estadisticas(){
   # GENERAL
   clear
   echo -e "\n \e[1;4mESTADÍSTICAS\e[0m\n"
-  echo -e "\n # \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | cut -b 1)";
+  echo -e "\n # \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | tr -d " \t" | cut -b 1)";
   echo -e "\n # \e[1;33mNº TOTAL MOVIMIENTOS:\e[0m $TOTAL_MOVS";
   if [ $MEDIA_TIEMPO -gt 60 ];then
     echo -e "\n # \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $(($MEDIA_TIEMPO/60)) minuto(s) y $(($MEDIA_TIEMPO%60)) segundos"
@@ -424,7 +432,7 @@ MostrarEstadisticas(){
   #COMIENZO
   #FICHACENTRAL
   #GANADOR
-  TIME2=$(date +%s)
+  TIME2=$SECONDS
   TIME=$((TIME2 - TIME1))
   #MOVIMIENTOS (num movs)
   #SECUENCIA JUGADAS → ${SEQ_POS%?}
@@ -475,7 +483,7 @@ Menu(){
         ;;
       J | j)
         PID=$$
-        TIME1=$(date +%s)
+        TIME1=$SECONDS
         Jugar
         ;;
       E | e)
