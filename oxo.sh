@@ -244,6 +244,11 @@ Configuracion(){
       0)
         return 0
       ;;
+      *)
+        echo " Opción ERRÓNEA."
+        sleep 1
+        configuración
+      ;;
     esac
     echo "COMIENZO=$COMIENZONEW" > oxo.cfg
     echo "FICHACENTRAL=$FICHACENTRALNEW" >> oxo.cfg
