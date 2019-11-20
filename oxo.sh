@@ -13,6 +13,13 @@ ComprobarConf() {
     exit;
   fi
 
+  for i in "COMIENZO" "FICHACENTRAL" "ESTADISTICAS";do
+    cat $FILE | grep $i >/dev/null 2>&1
+    if [ $? -ne 0 ];then
+      echo -e "\e[1;31mERROR\e[0m. En el archivo no se encuentra \"$i\""
+      exit
+    fi
+  done
   # Recoger los datos del fichero
   while IFS="=" read DATO VALOR
   do
@@ -35,7 +42,6 @@ ComprobarConf() {
     echo -e "\e[1;31mERROR\e[0m. No se ha introducido un valor correcto de la FICHACENTRAL (1 o 2)."
     exit;
   fi
-  touch
 }
 
 comprobarTablero() {
@@ -343,7 +349,7 @@ Estadisticas(){
   if [ ! -f $ESTADISTICAS ];then
     echo "No existe el fichero de estadisticas indicado en el archivo de configuración."
     return 1
-  elif [ $(wc -l "$ESTADISTICAS" | cut -b 1) -eq 0 ];then
+  elif [ "$(wc -l "$ESTADISTICAS" | cut -b 1)" = "0" ];then
     echo "El archivo está vacío ya que no se ha jugado ninguna partida todavía."
   fi
   # LEER DATOS DEL ARCHIVO *.log
@@ -400,7 +406,7 @@ Estadisticas(){
   # GENERAL
   clear
   echo -e "\n \e[1;4mESTADÍSTICAS\e[0m\n"
-  echo -e "\n # \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | cut -b 1)";
+  echo -e "\n # \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | grep -v "oxo.log" | cut -b 1)";
   echo -e "\n # \e[1;33mNº TOTAL MOVIMIENTOS:\e[0m $TOTAL_MOVS";
   if [ $MEDIA_TIEMPO -gt 60 ];then
     echo -e "\n # \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $(($MEDIA_TIEMPO/60)) minuto(s) y $(($MEDIA_TIEMPO%60)) segundos"
