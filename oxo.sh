@@ -390,13 +390,11 @@ Estadisticas(){
     fi
     # MOVIMIENTOS TOTALES EN CASILLA DEL MEDIO
     i=1; FLAG=1
-    echo -e "\n\n$CADENA"
     while [ $i -ne ${#CADENA} ]; do
       CHAR=$(echo $CADENA | cut -b $i)
       if [[ "$CHAR" = "5" && $FLAG -eq 0 ]];then FLAG=1
     elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; fi
       if [ $FLAG -eq 0 ];then TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+1)); fi
-      echo "Pos $i || TCM = $TOTAL_CASILLA_MEDIO"
       i=$((i+1))
     done
   done < $ESTADISTICAS
