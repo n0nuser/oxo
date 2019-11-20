@@ -6,8 +6,13 @@ ComprobarConf() {
       echo -e "\e[1;31mERROR\e[0m. El archivo $FILE no existe."
       exit;
   fi
-
-  if [ $(wc -l "$FILE" | tr -d "$FILE" | cut -b 1) -ne 3 ];then
+  count_lines(){
+    IFS=$'\n'
+    set -f
+    set -- $1
+    return $#
+  };count_lines
+  if [ $? -ne 3 ];then
     echo -e "\e[1;31mERROR\e[0m. El fichero $FILE no tiene los 3 campos necesarios (COMIENZO, FICHACENTRAL, ESTADISTICAS)."
     #Configuracion
     exit;
