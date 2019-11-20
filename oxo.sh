@@ -257,8 +257,7 @@ Configuracion(){
     echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
     echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR"
     read -p " Elija una opción >> " OPT_CONF
-    while [ $OPT_CONF -ne 1 ] && [ $OPT_CONF -ne 2 ] && [ $OPT_CONF -ne 3 ] && [ $OPT_CONF -ne 0 ]
-    do
+    while ! [[ OPT_CONF =~ ^-?[0-3]+$ ]];do
       echo -e "\n\nNo se ha introducido una opción válida.\n"
       read -p " Elija una opción >> " OPT_CONF
     done
@@ -428,7 +427,7 @@ MostrarEstadisticas(){
   #COMIENZO
   #FICHACENTRAL
   #GANADOR
-  TIME2=$(date +%s)
+  TIME2=$(printf '%(%s)T\n' -1)
   TIME=$((TIME2 - TIME1))
   #MOVIMIENTOS (num movs)
   #SECUENCIA JUGADAS → ${SEQ_POS%?}
@@ -479,7 +478,7 @@ Menu(){
         ;;
       J | j)
         PID=$$
-        TIME1=$(date +%s)
+        TIME1=$(printf '%(%s)T\n' -1)
         Jugar
         ;;
       E | e)
