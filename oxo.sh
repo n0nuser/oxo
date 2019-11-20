@@ -7,7 +7,7 @@ ComprobarConf() {
       exit;
   fi
 
-  if [ $(wc -l "$FILE" | cut -b 1) -ne 3 ];then
+  if [ "$(wc -l "$FILE" | cut -b 1)" != "3" ];then
     echo -e "\e[1;31mERROR\e[0m. El fichero $FILE no tiene los 3 campos necesarios (COMIENZO, FICHACENTRAL, ESTADISTICAS)."
     #Configuracion
     exit;
