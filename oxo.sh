@@ -383,7 +383,7 @@ Estadisticas(){
         # AQUÍ ENCUENTRA LA SEGUNDA FICHA
         if [[ "$CHAR" = "5" && $FLAG -eq 0 ]];then FLAG=1
         # AQUÍ LA PRIMERA
-      elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; fi
+      elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; CASILLA_MEDIO=$((CASILLA_MEDIO+1)); fi
         if [ $FLAG -eq 0 ];then CASILLA_MEDIO=$((CASILLA_MEDIO+1)); fi
         i=$((i+1))
       done
@@ -393,7 +393,7 @@ Estadisticas(){
     while [ $i -ne ${#CADENA} ]; do
       CHAR=$(echo $CADENA | cut -b $i)
       if [[ "$CHAR" = "5" && $FLAG -eq 0 ]];then FLAG=1
-    elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; fi
+    elif [[ "$CHAR" = "5" && $FLAG -eq 1 ]];then FLAG=0; TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+1)); fi
       if [ $FLAG -eq 0 ];then TOTAL_CASILLA_MEDIO=$((TOTAL_CASILLA_MEDIO+1)); fi
       i=$((i+1))
     done
