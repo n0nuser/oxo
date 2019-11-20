@@ -212,7 +212,7 @@ Configuracion(){
   echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
   echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR\n"
   read -p " Elija una opción >> " OPT_CONF
-  while ! [[ OPT_CONF =~ ^-?[0-3]+$ ]];do
+  while ! [[ $OPT_CONF =~ ^-?[0-3]+$ ]];do
     read -p " Elija una opción >> " OPT_CONF
   done
   while [ $OPT_CONF -ne 0 ]
@@ -262,7 +262,7 @@ Configuracion(){
     echo -e "\n\e[1;33m  ARCHIVO  DE\n CONFIGURACIÓN\n =============\e[0m\n" ; cat $FILE
     echo -e "\n \e[1;4;33mMENÚ\e[0m\n\n 1) COMIENZO\n 2) FICHACENTRAL\n 3) RUTA ESTADISTICAS\n 0) SALIR"
     read -p " Elija una opción >> " OPT_CONF
-    while ! [[ OPT_CONF =~ ^-?[0-3]+$ ]];do
+    while ! [[ $OPT_CONF =~ ^-?[0-3]+$ ]];do
       echo -e "\n\nNo se ha introducido una opción válida.\n"
       read -p " Elija una opción >> " OPT_CONF
     done
