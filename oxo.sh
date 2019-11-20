@@ -6,7 +6,7 @@ ComprobarConf() {
       echo -e "\e[1;31mERROR\e[0m. El archivo $FILE no existe."
       exit;
   fi
-  if [ $(wc -l $FILE | tr -d "\t" | cut -b 1) -ne 3 ];then
+  if [ $(wc -l $FILE | tr -d " \t" | cut -b 1) -ne 3 ];then
     echo -e "\e[1;31mERROR\e[0m. El fichero $FILE no tiene los 3 campos necesarios (COMIENZO, FICHACENTRAL, ESTADISTICAS)."
     #Configuracion
     exit;
@@ -348,7 +348,7 @@ Estadisticas(){
   if [ ! -f $ESTADISTICAS ];then
     echo "No existe el fichero de estadisticas indicado en el archivo de configuración."
     return 1
-  elif [ "$(wc -l "$ESTADISTICAS" | tr -d "\t" | cut -b 1)" = "0" ];then
+  elif [ "$(wc -l "$ESTADISTICAS" | tr -d " \t" | cut -b 1)" = "0" ];then
     echo "El archivo está vacío ya que no se ha jugado ninguna partida todavía."
   fi
   # LEER DATOS DEL ARCHIVO *.log
@@ -405,7 +405,7 @@ Estadisticas(){
   # GENERAL
   clear
   echo -e "\n \e[1;4mESTADÍSTICAS\e[0m\n"
-  echo -e "\n # \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | tr -d "\t" | cut -b 1)";
+  echo -e "\n # \e[1;33mNº PARTIDAS JUGADAS:\e[0m $(wc -l "$ESTADISTICAS" | tr -d " \t" | cut -b 1)";
   echo -e "\n # \e[1;33mNº TOTAL MOVIMIENTOS:\e[0m $TOTAL_MOVS";
   if [ $MEDIA_TIEMPO -gt 60 ];then
     echo -e "\n # \e[1;33mMEDIA TIEMPO TOTAL JUGADO:\e[0m $(($MEDIA_TIEMPO/60)) minuto(s) y $(($MEDIA_TIEMPO%60)) segundos"
