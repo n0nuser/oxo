@@ -427,7 +427,7 @@ MostrarEstadisticas(){
   #COMIENZO
   #FICHACENTRAL
   #GANADOR
-  TIME2=$(awk 'BEGIN {srand(); print srand()}')
+  TIME2=$SECONDS
   TIME=$((TIME2 - TIME1))
   #MOVIMIENTOS (num movs)
   #SECUENCIA JUGADAS → ${SEQ_POS%?}
@@ -478,7 +478,7 @@ Menu(){
         ;;
       J | j)
         PID=$$
-        TIME1=$(awk 'BEGIN {srand(); print srand()}')
+        TIME1=$SECONDS
         Jugar
         ;;
       E | e)
