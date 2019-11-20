@@ -318,7 +318,7 @@ Jugar(){
   do
     clear
     echo -e "\n  Fecha de juego: $(date +%d-%m-%y)\n\n  Comienzo partida: $TIME1 segundos"
-    echo -e "\n\n     \e[1;4;33mTABLERO\e[0m   \t\t\e[1;4;33mORDEN CASILLAS\e[0m\n\n  \e[1;33m|\e[0m ${POSICION[0]} \e[1;33m|\e[0m ${POSICION[1]} \e[1;33m|\e[0m ${POSICION[2]} \e[1;33m|\e[0m\t\t   1 | 2 | 3 \n   === === ===\t\t  ===·===·===\n  \e[1;33m|\e[0m ${POSICION[3]} \e[1;33m|\e[0m ${POSICION[4]} \e[1;33m|\e[0m ${POSICION[5]} \e[1;33m|\e[0m\t\t   4 | 5 | 6 \n   === === ===\t\t  ===·===·=== \n  \e[1;33m|\e[0m ${POSICION[6]} \e[1;33m|\e[0m ${POSICION[7]} \e[1;33m|\e[0m ${POSICION[8]} \e[1;33m|\e[0m\t\t   7 | 8 | 9 \n\n"
+    echo -e "\n\n     \e[1;4;33mTABLERO\e[0m         \e[1;4;33mORDEN CASILLAS\e[0m\n\n  \e[1;33m|\e[0m ${POSICION[0]} \e[1;33m|\e[0m ${POSICION[1]} \e[1;33m|\e[0m ${POSICION[2]} \e[1;33m|\e[0m        1 | 2 | 3 \n   === === ===        ===·===·===\n  \e[1;33m|\e[0m ${POSICION[3]} \e[1;33m|\e[0m ${POSICION[4]} \e[1;33m|\e[0m ${POSICION[5]} \e[1;33m|\e[0m        4 | 5 | 6 \n   === === ===        ===·===·=== \n  \e[1;33m|\e[0m ${POSICION[6]} \e[1;33m|\e[0m ${POSICION[7]} \e[1;33m|\e[0m ${POSICION[8]} \e[1;33m|\e[0m        7 | 8 | 9 \n\n"
     echo -e "  Movimientos del jugador: $((CONTADORHUMANO-1))\n\n  Movimientos del ordenador: $((CONTADORPC-1))\n\n"
     # TURNO HUMANO
     if [ $COMIENZO -eq 1 ]; then
