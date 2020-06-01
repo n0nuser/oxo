@@ -1,5 +1,10 @@
 # 0X0
 
+# Participación
+
+- Francisco Javier Gallego
+- Pablo Jesús González Rubio
+
 # Normas de entrega
 
 - Se entregará un listado de la práctica en papel. El listado se hará con un tipo de letra de espaciado fijo (p.ej. Courier New) e impreso por ambas caras del folio usado. Este listado servirá como comprobación de la práctica entregada, de la cual no se podrá modificar nada a partir de la fecha de entrega.
